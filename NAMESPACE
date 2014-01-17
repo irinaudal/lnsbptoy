@@ -1,0 +1,94 @@
+
+useDynLib(lnsbptoy)
+
+# Depends:
+# MASS (kde2d, truehist)
+# coda (MCMC stuff)
+# msm (truncated-normal)
+
+# Imports:
+import(MCMCpack) # for rdirichlet -- maybe just extract this function and add to package? 
+import(compiler) # for compiling functions
+import(methods) # for S4 classes
+import(fields)  # for interp.surface
+import(msm) # for truncated-normal-distr functions
+import(mvtnorm)  # for multivariate-normal-distr functions
+
+#import(ggplot2)
+#import(MASS)
+
+export(
+
+       plot.lns,
+       plot.lns.ci,
+
+       simulate.mix,
+       simulate.mix.AA,
+       analyze.mix,
+       analyze.mix.AA,
+
+       new.pble.basic,
+       new.pble.table,
+       sample.pble,
+       evaluate.pble,
+       fixValidPars,
+       checkValidPars,
+       
+       g.table,
+       winterpolate,
+       grid.select,
+
+       rpareto,
+       dpareto,
+       qpareto,
+       ppareto,
+
+       rtruncpareto,
+       dtruncpareto,
+       qtruncpareto,
+       ptruncpareto,
+
+       rbrokenpareto,
+       dbrokenpareto,
+       qbrokenpareto,
+       pbrokenpareto,
+
+       rmixpareto,
+       dmixpareto,
+       qmixpareto,
+       pmixpareto,
+
+       cover_func,
+       posterior_interval_plot,
+       generic_posterior_interval_plot,
+       global_coverage_plot,
+
+       pi.theta.compute,
+       pi.theta.get,
+       pi.theta.eval.mc,
+       pi.theta.eval.numint,
+       pi.theta.debug.plot,
+
+       trace.mcmc.plot,
+       posterior.theta,
+       posterior.scatterplot,
+       prior.plots,
+       posterior.prior.plots,
+
+       ppc.lns,
+       compute.1d.pval,
+       compute.2d.pval,
+       ppc.lns.plot,
+       gghist2d,    
+
+       truehist.fix,
+       shade.area.under.curve,
+       pareto_lns,
+
+       scp.copy,
+       expand.grid.alt,
+       showMemoryUse,
+       ppaste
+       )
+
+

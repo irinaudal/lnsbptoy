@@ -1,0 +1,11 @@
+Package: lnsbptoy
+Type: Package
+Title: Bayesian analysis of logN-logS data
+Version: 0.1
+Date: 2014-01-16
+Author: Irina Udaltsova, Paul Baines
+Maintainer: Irina Udaltsova <isudaltsova@ucdavis.edu>
+Depends: coda, MASS
+Imports: methods, compiler, MCMCpack, fields, msm, mvtnorm, boot, KernSmooth
+Description: Various functions to perform a break-point model for logN-logS analyses, diagnostic plots etc.
+License: GPL
