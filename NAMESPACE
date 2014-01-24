@@ -1,6 +1,4 @@
 
-useDynLib(lnsbptoy)
-
 # Depends:
 # MASS (kde2d, truehist)
 # coda (MCMC stuff)
@@ -20,24 +18,10 @@ import(mvtnorm)  # for multivariate-normal-distr functions
 export(
 
        plot.lns,
-       plot.lns.ci,
-
-       simulate.mix,
-       simulate.mix.AA,
-       analyze.mix,
-       analyze.mix.AA,
-
-       new.pble.basic,
-       new.pble.table,
-       sample.pble,
-       evaluate.pble,
-       fixValidPars,
-       checkValidPars,
        
-       g.table,
-       winterpolate,
-       grid.select,
-
+       simulate.mix,
+       analyze.mix,
+       
        rpareto,
        dpareto,
        qpareto,
@@ -66,7 +50,7 @@ export(
        pi.theta.compute,
        pi.theta.get,
        pi.theta.eval.mc,
-       pi.theta.eval.numint,
+       
        pi.theta.debug.plot,
 
        trace.mcmc.plot,
@@ -74,12 +58,6 @@ export(
        posterior.scatterplot,
        prior.plots,
        posterior.prior.plots,
-
-       ppc.lns,
-       compute.1d.pval,
-       compute.2d.pval,
-       ppc.lns.plot,
-       gghist2d,    
 
        truehist.fix,
        shade.area.under.curve,

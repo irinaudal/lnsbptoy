@@ -1,6 +1,6 @@
-"numint.N" <- function(N.t, theta.t, n, alpha, beta, pi, 
-                       Smin, gamma, pble, length.S, fixed.S.pi, debug.pi, g.type, g, nsamples,
-                       bp=NULL, p.t=NULL, tol=10^-10, use.bp=FALSE, use.mix=FALSE, verbose=FALSE){
+"numint.N" <- function(N.t, theta.t, n, alpha, beta, 
+                       Smin.t, bp.t, gamma, E, g, nsamples, sigma,
+                       tol=10^-10, verbose=FALSE){
   
   ####################################################################################################
   # numint.N   Numerical Integration step for single draw from posterior for N
@@ -34,9 +34,8 @@
     verbose2 <- 1
   }
   
-  pi.value <- pi.theta.get(pi=pi, theta=theta.t, p.t=p.t, bp=bp, Smin=Smin, gamma=gamma, 
-                           pble=pble, length.S=length.S, fixed.S=fixed.S.pi, debug=debug.pi,
-                           nsamples=nsamples, g.type=g.type, g=g, use.bp=use.bp, use.mix=use.mix, verbose=verbose2)     #marginal prob. of observing sources  
+  pi.value <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
+                           E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   
   "log.f" <- function(N,n,a,b,theta,pi.value){
     #vectorized log-pmf, unnormalized:

@@ -1,5 +1,5 @@
-"patch.sobs" <- function(S.obs.t, theta.t, Smin, E.obs, L.obs, bg.obs, gamma, g.type, g, I.idx.t=NULL, bp=NULL, 
-                         n.tries.max=1000,  use.bp=FALSE, use.mix=FALSE, verbose=FALSE){
+"patch.sobs" <- function(S.obs.t, theta.t, Smin, bp, E, gamma, g, 
+                         n.tries.max=1000, verbose=FALSE){
   
   ####################################################################################################
   # patch.sobs   Patch S.observed starting values, if needed
@@ -30,14 +30,12 @@
     S.obs.t[S.obs.t<Smin] <- Smin*1.0001
   }
   
-  lambda.curr <- S.obs.t*E.obs/gamma         #vector of lambda for observed cources, not saved  
-  g.curr <- g(lambda=lambda.curr,bg=bg.obs,E=E.obs,L=L.obs,g.type=g.type)    #vector of prob. of observing sources, not saved  
+  lambda.curr <- S.obs.t*E/gamma         #vector of lambda for observed cources, not saved  
+  g.curr <- g(lambda=lambda.curr)    #vector of prob. of observing sources, not saved  
   
   # If breakpoints are specified then the minimum value can't be increased above the lowest breakpoint:
   S.min.range <- Smin
-  if (use.bp){
-    S.min.range <- min(bp)-Smin
-  }
+  S.min.range <- min(bp)-Smin
   if (any(S.min.range<0)){
     stop("'bp' less than 'Smin' detected in 'patch.sobs'")
   }
@@ -57,33 +55,19 @@
     failed.indices <- (g.curr==0)
     N.failed.indices <- sum(failed.indices)
     
-    if(use.bp){
-      # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
-      if (S.star + S.min.range*0.1 < min(bp)){
-        S.star <- S.star + S.min.range*0.1
-      }
-      # Then generate from a pareto with lower limit s_* instead of S_min...
-      S.obs.t[failed.indices] <- rbrokenpareto(n=N.failed.indices,x_min=S.star,k=theta.t,bp=bp,verbose=verbose) 
-      
-    } else if(use.mix){        
-      # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
+    # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
+    if (S.star + S.min.range*0.1 < min(bp)){
       S.star <- S.star + S.min.range*0.1
-      # Then generate from a pareto with lower limit s_* instead of S_min...
-      S.obs.t[failed.indices] <- rpareto(n=N.failed.indices,x_min=S.star[I.idx.t[failed.indices]],k=theta.t[I.idx.t[failed.indices]]) 
-      
-    } else { #No mixtures case
-      # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
-      S.star <- S.star + S.min.range*0.1
-      # Then generate from a pareto with lower limit s_* instead of S_min...
-      S.obs.t[failed.indices] <- rpareto(n=N.failed.indices,x_min=S.star,k=theta.t) 
     }
-    lambda.curr <- S.obs.t[failed.indices]*E.obs[failed.indices]/gamma
-    g.curr[failed.indices] <- g(lambda=lambda.curr, bg=bg.obs[failed.indices], E=E.obs[failed.indices], L=L.obs[failed.indices], g.type=g.type)
+    # Then generate from a pareto with lower limit s_* instead of S_min...
+    S.obs.t[failed.indices] <- rbrokenpareto(n=N.failed.indices,x_min=S.star,k=theta.t,bp=bp,verbose=verbose) 
+    lambda.curr <- S.obs.t[failed.indices]*E/gamma
+    g.curr[failed.indices] <- g(lambda=lambda.curr)
     if (verbose){
       cat("Failed indices vector for starting states of S.obs:\n")
       print(failed.indices)
       cat("Adjusted (lambda,bg,E,L):\n")
-      print(cbind(lambda.curr,bg.obs[failed.indices],E.obs[failed.indices],L.obs[failed.indices]))
+      print(cbind(lambda.curr,E))
     } 
     n.tries <- n.tries+1
   }

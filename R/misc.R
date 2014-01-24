@@ -1,4 +1,4 @@
-#"ppaste" <- function(...){paste(...,sep="")}
+"ppaste" <- function(...){paste(...,sep="")}
 
 "scp.copy" <- function(from.filename,to.filename,from.delete=FALSE,recursive.dir.create=FALSE,verbose=TRUE)
 {

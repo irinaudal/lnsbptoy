@@ -3,7 +3,7 @@
 # {
 #    .Call("rpareto",
 #    as.integer(n),as.numeric(x_min),as.numeric(k),
-# 	 package="logNlogS") 
+#    package="logNlogS") 
 # }
 # 
 # "dpareto" <- function(x, x_min, k, log=FALSE)
@@ -596,12 +596,10 @@ rbrokenpareto <- cmpfun(rbrokenpareto)
   
   # Decide which mixture component each x belongs to:
   n <- length(x)
-  u.idx <- rep(NA,n)
   bp <- c(x_min,bp,Inf)
   
-  for (i in 1:n){
-    u.idx[i] <- min(m,max(c(1:(m+1))[x[i]>=bp])) #NOTE: min only needed if x[i] == Inf 
-  }
+  u.idx <- findInterval(x,bp)
+  
   k.u   <- k[u.idx]
   bpl.u <- bp[u.idx] 
   bpu.u <- bp[u.idx+1]
@@ -680,11 +678,10 @@ dbrokenpareto <- cmpfun(dbrokenpareto)
   
   # Decide which mixture component each x belongs to:
   n <- length(x)
-  u.idx <- rep(NA,n)
   bp <- c(x_min,bp,Inf)
-  for (i in 1:n){
-    u.idx[i] <- min(m,max(c(1:(m+1))[x[i]>=bp])) #NOTE: min only needed if x[i] == Inf
-  }
+  
+  u.idx <- findInterval(x,bp)
+  
   k.u  <- k[u.idx]
   bpl.u <- bp[u.idx] 
   bpu.u <- bp[u.idx+1]
@@ -789,8 +786,8 @@ qbrokenpareto <- cmpfun(qbrokenpareto)
   # Decide which mixture component each x belongs to:
   N <- length(S)
   S.idx <- sapply(1:N,function(x){
-                          min(m,max(c(1:(m+1))[S[x]>=bp])) #NOTE: min only useful if S == Inf (which shouldn't happen!)
-                       })
+    min(m,max(c(1:(m+1))[S[x]>=bp])) #NOTE: min only useful if S == Inf (which shouldn't happen!)
+  })
   
   # Pick out the lower and upper breakpoints for each data points:
   bpl.S <- bp[S.idx] 
@@ -813,7 +810,7 @@ qbrokenpareto <- cmpfun(qbrokenpareto)
   
   # Compute f(j) = I{j~=m}*\sum_{l=j+1}^{m} n(l) for j=1,...,m:
   n.cumsum <- c(sort(cumsum(n[m:2]),decreasing = TRUE), 0) # vector of partial sums
-
+  
   # Compute partial posterior parameters of gamma distr of theta:
   a.post <- a + n
   b.post <- b + n.cumsum*bp.log.ratio + s3.log.ratio

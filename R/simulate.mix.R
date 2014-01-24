@@ -1,9 +1,9 @@
-"simulate.mix" <- function(a, b, d=NULL, C=NULL, mu=NULL, am=NULL, bm=NULL, # vectors of length corresponding to the number of Pareto's 
-                           alpha, beta, gamma, pble,
-                           fixed.bp=NULL, fixed.theta=FALSE, fixed.N=FALSE, fixed.Smin=FALSE, fixed.p=NULL,
-                           g.type="step", g=function(lambda,bg,E,L,g.type){
-                             g.compute(lambda=lambda,bg=bg,E=E,L=L,g.type=g.type)
-                           }, area.conv.func=function(off){10.57508 * exp(0.5232*off)},
+"simulate.mix" <- function(a, b, C=NULL, mu=NULL, am=NULL, bm=NULL, # vectors of length corresponding to the number of Pareto's 
+                           alpha, beta, gamma, E,
+                           fixed.Smin=FALSE, fixed.bp=NULL, fixed.theta=FALSE, fixed.N=FALSE,
+                           g=function(lambda){
+                             return(rep(0.8,length(lambda)))
+                           }, 
                            verbose=FALSE ){
   
   ####################################################################################################
@@ -42,22 +42,9 @@
     cat("Generating data.. \n") 
   }
   
-  # Create pble object, if needed
-  if (class(pble)=="character") {
-    pble <- new.pble.table(effects.file=pble)
-  } else if (class(pble)!="pble.basic" && class(pble)!="pble.table"){
-    stop("'pble' could not be created.")
-  }  
-  
   m <- length(a)
   if (length(b) != m){
     stop("'a' and 'b' must be the same length")
-  }
-  use.bp <- !is.null(fixed.bp)
-  use.mix <- !is.null(fixed.p)
-  # sanity check
-  if(use.bp & use.mix){
-    stop("Check parameter specification! Cannot be both bp and mix case.")
   }
   
   # Generate the total number of sources:
@@ -100,113 +87,33 @@
   
   # Generate the breakpoints:
   # fixed.bp has 3 options:
-  # Option 1 :: fixed.bp == NULL                 ==> No break-points
   # Option 2 :: fixed.bp == (vector of scalars)  ==> Break-points, fixed to user-specified values
   # Option 3 :: fixed.bp == FALSE or TRUE        ==> Break-points, must be estimated
   
-  if (!use.bp){
-    # Option 1 :: No break-points
-    bp <- NULL
+  if (any(is.logical(fixed.bp))){
+    #       if (any(!fixed.bp)){  
+    # Option 3 :: Break-points, must be estimated
+    bp <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C))) + Smin
   } else {
-    if (any(is.logical(fixed.bp))){
-      #       if (any(!fixed.bp)){  
-      # Option 3 :: Break-points, must be estimated
-      if (verbose) {
-        cat("Generating K from prior.\n")
-      }
-      if (length(C)==m) {
-        # Generate (Smin.bp) from prior, overwrite previous version of Smin
-        K <- cumsum(exp(rnorm(n=m, mean=mu, sd=C)))
-        Smin <- K[1]
-        bp <- K[-1]
-      } else if (length(C)==m-1) {
-        bp <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C))) + Smin
-        
-      }      
-      #       } 
-      #       else {
-      #         stop("When specifying a break-point, you must use 'fixed.bp=value_you_want_to_fix_to'")
-      #         # Use the user-specified break-points
-      #       }
-    } else {
-      # Option 2 :: Break-points, fixed to user-specified values
-      # Must be of length (m-1):
-      if (length(fixed.bp) != (m-1)){
-        stop("When 'fixed.bp' is a vector of scalars, it must be of length 'length(a)-1' and 'length(b)-1'")
-      }
-      bp <- fixed.bp
+    # Option 2 :: Break-points, fixed to user-specified values
+    # Must be of length (m-1):
+    if (length(fixed.bp) != (m-1)){
+      stop("When 'fixed.bp' is a vector of scalars, it must be of length 'length(a)-1' and 'length(b)-1'")
     }
+    bp <- fixed.bp
   } # END generating bp
   if(verbose){
     cat("bp =\n"); print(bp)
   }
-  
-  
-  # Mixture-pareto has 2 options:
-  # Option 1 :: d == NULL                        ==> No mixtures
-  # Option 2 :: d == (vector of scalars)         ==> Mixtures, user-specified
-  
-  if (!use.mix){
-    # Option 1 :: No mixtures
-    p <- 1
-  } else {  
-    # Option 2 :: Mixtures, total number fixed to user-specified values
-    if (length(d) != (m)){
-      stop("When specifying mixtures, 'd' is a vector of scalars, it must be of length 'length(a)' and 'length(b)'")
-    }
-    
-    # Generate mixture proportion(s):
-    idx <- (fixed.p==TRUE | fixed.p==FALSE) #index of non-fixed-at-value entries
-    if (all(idx)){
-      p <- rdirichlet(n=1,alpha=d)
-    } else { #some/all p values are fixed
-      ## Suppose (X1,X2,X3,X4,X5)~Dirichlet(d1,d2,d3,d4,d5), s.t. sum(X_i)=1. 
-      ## Then, (X1,X2,X3,X4+X5)~Dirichlet(d1,d2,d3,d4+d5), s.t. sum(X_i)=1.
-      ## And, (X1,X2,X3)*1/(1-(X4+X5)) ~ Dirichlet(d1,d2,d3)  indep of  Y=(X4+X5) ~ Beta(d4+d5,d1+d2+d3) 
-      ## So, X1,X2,X3 | X4, X5  ~  (1-(X4+X5))*Z, where Z~Dirichlet(d1,d2,d3)  
-      p <- fixed.p
-      p.tilde <- rdirichlet(n=1,alpha=d[idx])
-      p[idx] <- p.tilde*(1-sum(p[!idx]))
-    } 
-  } # END generating mixture probabilities  
-  
+
   # Generate source flux S:
   ## Generalizing to handle both break-points and untruncated mixtures
-  if (use.bp){
-    # Generate from broken power-law mixture of Truncated Pareto's:
-    S     <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose)
-    I.idx <- NULL
-  } else if (use.mix){
-    # Generate from mixture of Pareto's:
-    tmp   <- rmixpareto(n=N,p=p,k=theta,x_min=Smin) #this function is already compatible with single Pareto case
-    I.idx <- tmp$I.idx
-    S     <- tmp$S
-  } else {
-    # Generate from single Pareto:
-    S     <- rpareto(n=N,k=theta,x_min=Smin)
-    I.idx <- NULL
-  }
-  
-  # Generate standard background, effective area etc.:  
-  par <- sample.pble(pble,N)
-  bg  <- par$B
-  L   <- par$L
-  E   <- par$E  
-  pix.area <- area.conv.func(off=L)
-  k    <- bg*pix.area   
-  if(verbose){
-    cat("bg =\n"); print(bg)
-    cat("L =\n"); print(L)
-    cat("E =\n"); print(E)
-    cat("pix.area =\n"); print(pix.area)
-    cat("k =\n"); print(k)
-  }
-  
+  # Generate from broken power-law mixture of Truncated Pareto's:
+  S     <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose)
   
   # Generate photon counts:
-  Ybkg <- rpois(N,k)
+  Ybkg <- 0
   lambda.src <- S*E/gamma    #CDFS: src_count [ct] = (flux [erg/s/cm^2] * exposure_time [s])/ (eff_mean_src_exp * 1.06e-11 [ergs/cm^2/ct])
-  #lambda.src <- min(lambda.src, 1e299)
   Ysrc <- rpois(N,lambda.src)
   
   # sanity check
@@ -224,7 +131,7 @@
   Ytot <- Ysrc + Ybkg
   
   # Determine whether observed or missing:
-  gp <- g(lambda=lambda.src,bg=bg,E=E,L=L,g.type=g.type,verbose=verbose)
+  gp <- g(lambda=lambda.src)
   
   J <- rbinom(N,1,gp)    #length of gp is N
   n <- sum(J)
@@ -240,26 +147,12 @@
     cat("Storing result.. \n") 
   }   
   
-  if (use.mix){
-    par <- list("N"=N,"theta."=theta,"Smin"=Smin,"p."=p,"S.obs."=S[J==1])    
-  } else if(use.bp) {
-    if (m-1==1) {
-      par <- list("N"=N,"theta."=theta,"Smin"=Smin,"bp"=bp,"S.obs."=S[J==1])
-    } else {
-      par <- list("N"=N,"theta."=theta,"Smin"=Smin,"bp."=bp,"S.obs."=S[J==1])
-    }
-  } else {
-    par <- list("N"=N,"theta"=theta,"Smin"=Smin,"S.obs."=S[J==1])
-  }
-  
-  result <- list("obs"=list("Y.obs.tot"=Ytot[J==1],"n"=n,"E.obs"=E[J==1],"bg.obs"=bg[J==1],"L.obs"=L[J==1],"k.obs"=k[J==1]),
+  par <- list("N"=N,"theta."=theta,"tau."=c(Smin,bp),"S.obs."=S[J==1])
+
+  result <- list("obs"=list("Y.obs.tot"=Ytot[J==1],"n"=n),
                  "par"=par, 
-                 "mis"=list("N.mis"=sum(1-J),"S.mis"=S[J==0],"Y.obs.src"=Ysrc[J==1], 
-                            "Y.mis.src"=Ysrc[J==0],"Y.mis.tot"=Ytot[J==0], 
-                            "Y.obs.bkg"=Ybkg[J==1],"Y.mis.bkg"=Ybkg[J==0]),
-                 "mix"=list("I.idx"=I.idx),
-                 "pble"=pble,
-                 "orig"=list("S"=S,"k"=k,"bg"=bg,"gp"=gp,"lambda.src"=lambda.src,"Ybkg"=Ybkg,"Ysrc"=Ysrc))
+                 "mis"=list("N.mis"=sum(1-J),"S.mis"=S[J==0],"Y.mis.tot"=Ytot[J==0]),
+                 "orig"=list("S"=S,"E"=E,"gp"=gp,"lambda.src"=lambda.src,"Ybkg"=Ybkg,"Ysrc"=Ysrc))
   return(result)
 }
 
