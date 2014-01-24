@@ -45,11 +45,14 @@
   }
   
   upperBound <- min(S.obs.t)
+  S <- S.obs.t
   
   # current state
+  eta.t <- log(Smin.t)
   pi.value.curr <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
                                 E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
-  p1.curr <- sum(dgamma(x=Smin.t, shape=n*theta.t[1] + am, rate=bm, log=TRUE))
+  jacobian.curr <- eta.t
+  p1.curr <- jacobian.curr + dgamma(x=Smin.t, shape=n*theta.t[1] + am, rate=bm, log=TRUE)
   p2.curr <- (N.t-n)*log(1-pi.value.curr)
   if(N.t==n){
     p2.curr <- 0
@@ -57,12 +60,14 @@
   p.curr <- p1.curr + p2.curr
   
   # proposal state
-  Smin.prop <- rnorm(n=1, mean=Smin.t, sd=v.sm)    #v.sm = tuning parameter (vector) to accept 20-60% of proposals
+  eta.prop <- rnorm(n=1, mean=eta.t, sd=v.sm)    #v.sm = tuning parameter (vector) to accept 20-60% of proposals
+  Smin.prop <- exp(eta.prop)
   
   if (0 < Smin.prop && all(Smin.prop < bp.t) && Smin.prop < upperBound) {
     pi.value.prop <- pi.theta.get(theta=theta.t, Smin=Smin.prop, bp=bp.t, gamma=gamma, 
                                   E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
-    p1.prop <- sum(dgamma(x=Smin.prop, shape=n*theta.t[1] + am, rate=bm, log=TRUE))
+    jacobian.prop <- eta.prop
+    p1.prop <- jacobian.prop + sum(dgamma(x=Smin.prop, shape=n*theta.t[1] + am, rate=bm, log=TRUE))
     p2.prop <- (N.t-n)*log(1-pi.value.prop)
     if(N.t==n){
       p2.prop <- 0
@@ -70,7 +75,7 @@
     p.prop <- p1.prop + p2.prop
   } else {
     p.prop <- -Inf
-    p1.prop <- p2.prop <- NA
+    p1.prop <- p2.prop <- jacobian.prop <- NA
   }
   
   if(verbose){
@@ -78,7 +83,7 @@
     cat("Smin.t:     #before update\n"); print(Smin.t)
     cat("Smin.prop:\n"); print(Smin.prop)
   }
-  
+    
   # Compute ratio of densities for MH
   log.alpha <- p.prop - p.curr            #compare proposal to current
   log.u <- log(runif(1))                #random vector U(0,1)

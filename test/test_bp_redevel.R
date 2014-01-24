@@ -53,14 +53,14 @@ if (length(args)==0){
   sinkit <- TRUE
   sim_num <- sim_start + as.numeric(args[1])
 }
-set.seed(762*sim_num + 1330931) 
+set.seed(762*sim_num + 1330931 + 10231*92) 
 ###################
 
 # Set simulation parameters
-niter  <- 13000
+niter  <- 50000
 burnin <- 500
 tune.iter <- 100
-stop.tune <- 3000
+stop.tune <- 10000
 verbose <- FALSE
 
 print.every <- 1000
@@ -92,6 +92,7 @@ save.image.file     <- paste(output.dir,"/store_image.RData",sep="")
 output.lnsplot     <- paste(output.dir,"/logN_logS_",model,".jpg",sep="")
 output.mcmcplot    <- paste(output.dir,"/mcmc_draws_",model,"_%02d.jpg",sep="")
 output.logPost     <- paste(output.dir,"/log_posterior.jpg",sep="")
+output.priorsplot  <- paste(output.dir,"/model_priors.pdf",sep="")
 
 if (!file.exists(output.dir.outer)){   #set directory - done after simulate()
   dir.create(output.dir.outer, recursive=TRUE)
@@ -114,13 +115,13 @@ length.jobs <- length(sigma.vec)
   #return(1 - exp(-lambda))   # 1 minus exponential decay
 }
 nsamples  <- 10000
-E <- 10000
+E <- 1000
 gamma <- 1.6*(10^(-9))
 
 # Tuning parameters
 v.th  <- 0.2 #proposal sd for theta
-v.sm  <- 0.2 #proposal sd for Smin
-v.bp  <- 0.05 #proposal sd for eta (bp)
+v.sm  <- 1.0 #proposal sd for Smin
+v.bp  <- 0.5 #proposal sd for eta (bp)
 v.so  <- 2.0*(10^(-13)) # proposal sd for S, flux
 
 # Parameters for Normal priors for break-point(s):
@@ -323,6 +324,16 @@ if (sinkit) {
     trace.mcmc.plot(resmc=resmc, res=res, true.par=true.par, max.mcmc.plots=max.mcmc.plots, remote.copy=FALSE)
     par(mfrow=c(1,1))
     dev.off()    
+    
+    
+    cat("Making prior distr. plots...\n")
+    pdf(output.priorsplot)
+    if(!do.prior.plots.complex) {
+      prior.plots(resmc=resmc, true.par=true.par)
+    } else {
+      posterior.prior.plots(resmc=resmc, true.par=true.par)
+    }
+    dev.off()  
     
     
     cat("Evaluating log(posterior) plot...\n")

@@ -416,10 +416,10 @@
   
   tpa <- round(prop.ct.theta/niter,2)*100
   mpa <- round(prop.ct.Smin/niter,2)*100
-  epa <- round(prop.ct.bp/niter,2)*100
+  bpa <- round(prop.ct.bp/niter,2)*100
   spa <- round(prop.ct.S.obs/niter,2)*100
   prop.accept <- list("v"=c(v.so,v.th,v.sm,v.bp),
-                      "S.prop.accept"=spa,"theta.prop.accept"=tpa,"Smin.prop.accept"=mpa,"eta.prop.accept"=epa,
+                      "S.prop.accept"=spa,"theta.prop.accept"=tpa,"Smin.prop.accept"=mpa,"bp.prop.accept"=bpa,
                       "S.mis.ct.accept"=prop.ct.S.mis)
   
   return(list("draws"=draws,"prop.accept"=prop.accept,
