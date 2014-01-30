@@ -1,5 +1,5 @@
 "tune.v" <- function(v.th, v.sm, v.bp, v.so, prop.ct.theta, prop.ct.Smin, prop.ct.bp, prop.ct.S.obs, prop.state, 
-                     tune.iter, amt=sqrt(5), verbose=FALSE){
+                     tune.iter, tune.amt=5, verbose=FALSE){
   
   ####################################################################################################
   # tune.v   Reduce or increase tuning SD parameters according for acceptance of proposals to be within 20-60%
@@ -14,7 +14,7 @@
   #        prop.ct.S.obs = number of accepted proposals for S.obs
   #        prop.state    = default state of number of accepted proposals for S.com
   #        tune.iter     = chain iteration at which to tune
-  #        amt           = amount factor by which to tune
+  #        tune.amt           = amount factor by which to tune
   #        verbose       = (T/F) display progress of program
   #
   # Output: v.th        = SD vector, tuning parameter to accept 20-60% of proposals of theta
@@ -46,14 +46,14 @@
   epa <- round(prop.state.e/tune.iter,3)*100
   spa <- round(prop.state.s/tune.iter,3)*100
   # Tune 
-  v.th[tpa<20] <- v.th[tpa<20]/amt      #reject too many => reduce SD
-  v.th[tpa>60] <- v.th[tpa>60]*amt      #accept too many => increase SD
-  v.sm[mpa<20] <- v.sm[mpa<20]/amt
-  v.sm[mpa>60] <- v.sm[mpa>60]*amt
-  v.bp[epa<20] <- v.bp[epa<20]/amt
-  v.bp[epa>60] <- v.bp[epa>60]*amt
-  v.so[spa<20] <- v.so[spa<20]/amt
-  v.so[spa>60] <- v.so[spa>60]*amt
+  v.th[tpa<20] <- v.th[tpa<20]/tune.amt      #reject too many => reduce SD
+  v.th[tpa>60] <- v.th[tpa>60]*tune.amt      #accept too many => increase SD
+  v.sm[mpa<20] <- v.sm[mpa<20]/tune.amt
+  v.sm[mpa>60] <- v.sm[mpa>60]*tune.amt
+  v.bp[epa<20] <- v.bp[epa<20]/tune.amt
+  v.bp[epa>60] <- v.bp[epa>60]*tune.amt
+  v.so[spa<20] <- v.so[spa<20]/tune.amt
+  v.so[spa>60] <- v.so[spa>60]*tune.amt
   # Update current proposal state
   prop.state <- list("prop.ct.theta"=prop.ct.theta, "prop.ct.Smin"=prop.ct.Smin, 
                      "prop.ct.bp"=prop.ct.bp, "prop.ct.S.obs"=prop.ct.S.obs) #update current proposal state

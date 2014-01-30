@@ -532,6 +532,20 @@ qtruncpareto <- cmpfun(qtruncpareto)
   
   # Decide which mixture component to use:
   u.idx <- findInterval(runif(n),p.cumsum)
+
+#   u <- runif(n)
+#   u.idx <- rep(NA,n)
+#   for (i in 1:n){
+#     u.idx[i] <- max(c(1:(m+1))[u[i] > p.cumsum])
+#   }
+#   
+#   # Checked!!! works equial to code below  =)
+#   u.idx.new <- findInterval(u,p.cumsum)
+#   
+#   if(!all(u.idx.new==u.idx)){
+#     stop("rbrokenpareto 'u.idx' calculation does not match for loop!")
+#   }
+  
   k.u  <- k[u.idx]
   bp <- c(x_min,bp,Inf)
   bpl.u <- bp[u.idx] 
@@ -599,6 +613,18 @@ rbrokenpareto <- cmpfun(rbrokenpareto)
   bp <- c(x_min,bp,Inf)
   
   u.idx <- findInterval(x,bp)
+  
+#   u.idx <- rep(NA,n)
+#   for (i in 1:n){
+#     u.idx[i] <- min(m,max(c(1:(m+1))[x[i]>=bp])) #NOTE: min only needed if x[i] == Inf 
+#   }
+#   
+#   #Above and below code dbrokenpareto matches!!! =)
+#   u.idx.new <- findInterval(x,bp)
+#   
+#   if(!all(u.idx.new==u.idx)){
+#     stop("dbrokenpareto 'u.idx' calculation does not match for loop!")
+#   }
   
   k.u   <- k[u.idx]
   bpl.u <- bp[u.idx] 
@@ -680,7 +706,16 @@ dbrokenpareto <- cmpfun(dbrokenpareto)
   n <- length(x)
   bp <- c(x_min,bp,Inf)
   
-  u.idx <- findInterval(x,bp)
+  u.idx <- rep(NA,n)
+  for (i in 1:n){
+    u.idx[i] <- min(m,max(c(1:(m+1))[x[i]>=bp])) #NOTE: min only needed if x[i] == Inf
+  }
+  
+  u.idx.new <- findInterval(x,bp)
+  
+  if(!all(u.idx.new==u.idx)){
+    stop("pbrokenpareto 'u.idx' calculation does not match for loop!")
+  }
   
   k.u  <- k[u.idx]
   bpl.u <- bp[u.idx] 
@@ -749,6 +784,15 @@ pbrokenpareto <- cmpfun(pbrokenpareto)
   for (i in 1:n){
     q.idx[i] <- min(m,max(c(1:(m+1))[q.bp[i] >= p.cumsum])) #NOTE: min only needed to handle q==1 case
   }
+  
+  q.idx.new <- findInterval(q.bp,p.cumsum)
+  q.idx.new <- sapply(q.idx.new, min, m)
+  
+  if(!all(q.idx.new==q.idx)){
+    stop("qbrokenpareto 'q.idx' calculation does not match for loop!")
+  }
+  
+  
   k.q  <- k[q.idx]
   bp <- c(x_min,bp,Inf)
   bpl.q <- bp[q.idx] 

@@ -411,7 +411,8 @@
   
   ############################################
   # Compute effective sample size
-  eff.size <- effectiveSize(draws)
+    eff.size <- effectiveSize(draws)
+  #eff.size <- NA
   ############################################
   
   tpa <- round(prop.ct.theta/niter,2)*100

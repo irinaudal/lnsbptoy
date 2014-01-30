@@ -80,6 +80,14 @@
   } else {   #all values for Smin are already fixed/given
     Smin  <- fixed.Smin
   }
+  # TODO: perhaps, put this portion of the code into a while loop, in order to regenerate from the prior, instead of hard fixing it.
+  # repeat this try 10 times, then fix to 98% of the bp with a warning.
+  if (fixed.bp) {
+    if (Smin >= fixed.bp) {
+      Smin <- fixed.bp*0.98
+    }
+  }
+  
   if(verbose){
     cat("Smin =\n"); print(Smin)
   }
