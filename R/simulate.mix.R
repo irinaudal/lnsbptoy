@@ -82,12 +82,13 @@
   }
   # TODO: perhaps, put this portion of the code into a while loop, in order to regenerate from the prior, instead of hard fixing it.
   # repeat this try 10 times, then fix to 98% of the bp with a warning.
-  if (fixed.bp) {
-    if (Smin >= fixed.bp) {
-      Smin <- fixed.bp*0.98
+  if(!is.null(fixed.bp)) {
+    if (fixed.bp) {
+      if (Smin >= fixed.bp) {
+        Smin <- fixed.bp*0.98
+      }
     }
   }
-  
   if(verbose){
     cat("Smin =\n"); print(Smin)
   }
@@ -97,18 +98,22 @@
   # fixed.bp has 3 options:
   # Option 2 :: fixed.bp == (vector of scalars)  ==> Break-points, fixed to user-specified values
   # Option 3 :: fixed.bp == FALSE or TRUE        ==> Break-points, must be estimated
-  
-  if (any(is.logical(fixed.bp))){
-    #       if (any(!fixed.bp)){  
-    # Option 3 :: Break-points, must be estimated
-    bp <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C))) + Smin
-  } else {
-    # Option 2 :: Break-points, fixed to user-specified values
-    # Must be of length (m-1):
-    if (length(fixed.bp) != (m-1)){
-      stop("When 'fixed.bp' is a vector of scalars, it must be of length 'length(a)-1' and 'length(b)-1'")
+  if(!is.null(fixed.bp)) {
+    
+    if (any(is.logical(fixed.bp))){
+      #       if (any(!fixed.bp)){  
+      # Option 3 :: Break-points, must be estimated
+      bp <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C))) + Smin
+    } else {
+      # Option 2 :: Break-points, fixed to user-specified values
+      # Must be of length (m-1):
+      if (length(fixed.bp) != (m-1)){
+        stop("When 'fixed.bp' is a vector of scalars, it must be of length 'length(a)-1' and 'length(b)-1'")
+      }
+      bp <- fixed.bp
     }
-    bp <- fixed.bp
+  } else {
+    bp <- NULL
   } # END generating bp
   if(verbose){
     cat("bp =\n"); print(bp)
@@ -155,8 +160,11 @@
     cat("Storing result.. \n") 
   }   
   
-  par <- list("N"=N,"theta."=theta,"tau."=c(Smin,bp),"S.obs."=S[J==1])
-
+  if(is.null(fixed.bp)) {
+    par <- list("N"=N,"theta.1"=theta,"tau.1"=Smin,"S.obs."=S[J==1])
+  } else {
+    par <- list("N"=N,"theta."=theta,"tau."=c(Smin,bp),"S.obs."=S[J==1])
+  }
   result <- list("obs"=list("Y.obs.tot"=Ytot[J==1],"n"=n),
                  "par"=par, 
                  "mis"=list("N.mis"=sum(1-J),"S.mis"=S[J==0],"Y.mis.tot"=Ytot[J==0]),

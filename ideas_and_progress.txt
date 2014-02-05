@@ -1,0 +1,118 @@
+my simplification to dgamma using theta.t[1] is correct!! code is validated.
+
+p(smin | . ) =
+
+= p(Smin) * p(S|Smin,bp,theta) * (pi)^N..
+
+and MH proposal ratio is 
+= p(Smin.prop | .) * q(Smin.to.curr | Smin.prop)  / 
+ / p(Smin.curr|.) * q(Smin.to.prop | Smin.curr)
+
+
+p(Smin) = prior = gamma.
+
+q(Smin.to.curr | Smin.prop) = |J| * p(eta.curr | eta.prop).
+
+
+Smin = exp(eta).
+eta = log(Smin)
+d-eta/d-Smin = J = 1/Smin
+
+so, 
+
+
+q(Smin.t | Smin.prop) 
+
+= |J| * p(eta.t | Smin.prop) 
+
+= 1/Smin.t * p(eta.t(Smin.t) | Smin.prop)
+
+= 1/Smin.t * const * exp( -.5 * (log(Smin.t) - log(Smin.prop))^2 / v.sm^2 )
+
+
+log-q(Smin.t|prop)  =  -log(Smin.t) + log-p(eta.t | eta.prop)-normal.
+
+
+
+
+pi(theta,Smin,bp) = int  g(Smin) * p(Smin|theta,Smin,bp) dSmin, since E is a constant.
+
+
+
+Errors:  
+
+#117
+
+Module R 3.0.2 Loaded.
+Loading required package: coda
+Loading required package: lattice
+Loading required package: MASS
+Error in rej.smis(S.mis.t = S.mis.t, theta.t = theta.t, N.t = N.t, Smin.t = Smin.t,  : 
+  Error: Cannot draw acceptible S.mis values. Check [new proposals of S.mis]. 
+                 The current value of Smin = 3.82736267278325e-13, N.t=261, n=260
+Calls: analyze.mix -> update.lns -> rej.smis
+Execution halted
+srun: error: c0-20: task 0: Exited with exit code 1
+
+#208
+
+Module R 3.0.2 Loaded.
+Loading required package: coda
+Loading required package: lattice
+Loading required package: MASS
+Error in rej.smis(S.mis.t = S.mis.t, theta.t = theta.t, N.t = N.t, Smin.t = Smin.t,  : 
+  Error: Cannot draw acceptible S.mis values. Check [new proposals of S.mis]. 
+                 The current value of Smin = 4.03897947825427e-13, N.t=182, n=181
+Calls: analyze.mix -> update.lns -> rej.smis
+Execution halted
+srun: error: c0-10: task 0: Exited with exit code 1
+
+
+#138
+
+Module R 3.0.2 Loaded.
+Loading required package: coda
+Loading required package: lattice
+Loading required package: MASS
+Error in rej.smis(S.mis.t = S.mis.t, theta.t = theta.t, N.t = N.t, Smin.t = Smin.t,  : 
+  Error: Cannot draw acceptible S.mis values. Check [new proposals of S.mis]. 
+                 The current value of Smin = 4.08218240732474e-13, N.t=87, n=86
+Calls: analyze.mix -> update.lns -> rej.smis
+Execution halted
+srun: error: c0-20: task 0: Exited with exit code 1
+
+#55
+
+Module R 3.0.2 Loaded.
+Loading required package: coda
+Loading required package: lattice
+Loading required package: MASS
+Error in rej.smis(S.mis.t = S.mis.t, theta.t = theta.t, N.t = N.t, Smin.t = Smin.t,  : 
+  Error: Cannot draw acceptible S.mis values. Check [new proposals of S.mis]. 
+                 The current value of Smin = 4.43497453390308e-13, N.t=85, n=84
+Calls: analyze.mix -> update.lns -> rej.smis
+Execution halted
+srun: error: c0-17: task 0: Exited with exit code 1
+
+
+
+
+Running validations:
+.  fixed tau.          Simulate N, theta -> failed
+.  fixed theta, tau.   Simulate N -> failed
+.  fixed N, theta.     Simulate tau -> failed badly
+.  fixed N, tau.       Simulate theta  -> passed? borderline
+.  fixed N, theta, bp. Simulate Smin -> failed
+.  fixed N, theta, Smin. Simulate bp -> failed
+
+
+
+TODO various model checks:
+
+1. Fixed N, theta;  tau only; non-const g, m=2  ->  X  failed
+2. Fixed N, theta;  tau only;     const g, m=2  ->  Check: passed
+3. Fixed N, theta;  tau only; non-const g, m=1, brokenpareto  ->  X  failed
+4. Fixed N, theta;  tau only;     const g, m=1, brokenpareto  ->  Check: passed
+5. Fixed N, theta;  tau only; non-const g, m=1,       pareto  ->  ?
+6. Fixed N, theta;  tau only;     const g, m=1,       pareto  ->  ?
+

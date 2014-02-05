@@ -27,11 +27,10 @@
   # evaluate pi with error
   pi <- g(lambda=Smin*E/gamma) + rnorm(1,mean=0,sd=sigma)  # NOTE: this g==CONST
   
-#     # Use Monte Carlo integration 
-#     tmp <- pi.theta.eval.mc(nsamples=nsamples, theta.grid=theta, Smin.grid=Smin, bp.grid=bp, p.t.grid=p.t, 
-#                             use.bp=TRUE, use.mix=FALSE,
-#                             m=m, gamma=gamma, pble=pble, g=g, g.type=g.type, verbose=verbose)    
-#   
+#   # Use Monte Carlo integration 
+#   tmp <- pi.theta.eval.mc(nsamples=nsamples, theta.grid=theta, Smin.grid=Smin, bp.grid=bp, 
+#                           m=m, gamma=gamma, E=E, g=g, verbose=verbose)
+# 
 #   pi <- tmp$pi
   
   if (truncate) {

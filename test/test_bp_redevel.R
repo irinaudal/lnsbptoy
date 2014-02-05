@@ -40,7 +40,7 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 ## Handle batch job arguments:
 args <- commandArgs(TRUE)  # 1-indexed version is used now.
-args <- 17
+#args <- 17
 cat(paste("Command-line arguments:\n"))
 print(args)
 
@@ -57,8 +57,8 @@ set.seed(762*sim_num + 1330931 + 10231*92)
 ###################
 
 # Set simulation parameters
-niter  <- 12000 #220000
-burnin <-  2000 #20000
+niter  <- 120000
+burnin <-  20000
 tune.iter <- 100
 stop.tune <- 10000
 verbose <- FALSE
@@ -73,14 +73,14 @@ do.mcmc.plots  <- ifelse(sim_num<1011,TRUE,FALSE)
 
 model <- "bp"
 
-fixed.theta <- FALSE #c(.3,.8)   # Vector of values / FALSE
-fixed.N     <- FALSE  # Value / FALSE
+fixed.theta <- 1.1 #c(.6,1.2)   # Vector of values / FALSE
+fixed.N     <- 150 #FALSE  # Value / FALSE
 fixed.Smin  <- FALSE #1*10^-13
-fixed.bp    <- 4*10^-13
+fixed.bp    <- NULL #FALSE #4*10^-13
 fixed.S.obs <- FALSE
 fixed.S.mis <- FALSE
 
-outer.dir.extra     <- paste("/bp_lns_toy_example_fixedbp_const", sep="")
+outer.dir.extra     <- paste("/bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const", sep="")
 output.dir.extra    <- paste("/dataset_",sim_num,sep="")
 output.dir.outer    <- paste(main.dir,outer.dir.extra,sep="")
 output.dir          <- paste(output.dir.outer,output.dir.extra,sep="")
@@ -114,7 +114,7 @@ length.jobs <- length(sigma.vec)
 # Incompleteness
 "g.func" <- function(lambda) {
   return(rep(0.8,length(lambda)))   # constant incompleteness
-  #return(pnorm(lambda,mean=8,sd=7))   # 1 minus exponential decay
+  #return(pnorm(lambda,mean=8,sd=26))   # 1 minus exponential decay
 }
 nsamples  <- 10000
 E <- 190000
@@ -131,8 +131,8 @@ mu <- -30 # c(-30) # dim: eta(bp)=m-1
 C  <- c(0.5) 
 ##############################
 # Parameters for Gamma prior(s) for theta(s):
-a <- c(10,30) #c(12,10) #c(25,30)
-b <- c(20,30) #c(18,10) #c(40,30)
+a <- 10 #c(10,30) #c(12,10) #c(25,30)
+b <- 20 #c(20,30) #c(18,10) #c(40,30)
 ##############################
 # Parameters for Gamma prior(s) for minimum threshold parameter Smin(s):
 Smin.prior.mean <- 1.0*10^(-13)    # Mean = am * bm
@@ -145,7 +145,7 @@ bm  <- am / Smin.prior.mean                 # rate
 #    Var  = alpha * (1+beta) / beta^2
 #    => beta   = prior.mean / (prior.var - prior.mean)
 #    => alpha = beta * prior.mean  
-N.prior.mean <- 200 #80 ##300
+N.prior.mean <- 150 #80 ##300
 N.prior.var  <- 50^2 #50^2 #(1*100)^2
 beta  <- N.prior.mean / (N.prior.var - N.prior.mean)
 alpha <- beta * N.prior.mean
@@ -213,7 +213,6 @@ id.th <- grep("theta",names(true.par))
 id.sm <- grep("tau.1",names(true.par))
 id.bp <- grep("tau",names(true.par))[-1]
 true.S.mis <- res$mis$S.mis
-
 
 for (job_num in 1:length.jobs ) {
   

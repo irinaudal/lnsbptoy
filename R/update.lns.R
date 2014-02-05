@@ -2,7 +2,7 @@
                          prop.ct.S.obs, prop.ct.S.mis,  prop.ct.theta, prop.ct.Smin, prop.ct.bp,
                          alpha, beta, a, b, am, bm, C, mu, gamma, E, g, nsamples, sigma,
                          fixed.N=FALSE, fixed.theta=FALSE, fixed.S.obs=FALSE, fixed.S.mis=FALSE, 
-                         fixed.Smin=FALSE, fixed.bp=FALSE, store_logPost=FALSE,
+                         fixed.Smin=FALSE, fixed.bp=NULL, store_logPost=FALSE,
                          verbose=FALSE){
   
   
@@ -45,7 +45,7 @@
   #        fixed.S.obs = Value/FALSE: debugging for S.obs - no mcmc
   #        fixed.S.mis = Value/FALSE: debugging for S.mis - no mcmc
   #        fixed.Smin  = Value/FALSE: allow for user specified Smin  - no mcmc
-  #        fixed.bp    = Value/FALSE, break-points: allow for user specified bp - no mcmc  
+  #        fixed.bp    = NULL/Value/FALSE, break-points: allow for user specified bp - no mcmc  
   #        g       = function, probability of observing source
   #        store_logPost = (T/F) whether to store estimate of log-posterior (without norm const)
   #        verbose = (T/F) display progress of program
@@ -140,22 +140,23 @@
   } # END Smin.t update
   
   ### Sample bp.t 
-  if (any(!fixed.bp)) { 
-    # Metropolis-Hastings, sample K.t bpeakpoints, without Smin.t.              
-    if (verbose) {
-      cat("_____bp updating step (MH/MTM)_____\n") 
-    }       
-    # Generate bp.t only: Smin.t is fixed at the current state
-    met <- met.bp(bp.t=bp.t, Smin.t=Smin.t, S.obs.t=S.obs.t,  N.t=N.t, n=n, theta.t=theta.t, 
-                  C=C, mu=mu, v.bp=v.bp, fixed.bp=fixed.bp, sigma=sigma,
-                  gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)      
-    bp.t   <- met$bp.t
-    prop.ct.bp[met$idx] <- prop.ct.bp[met$idx]+1    #count accepted proposals      
-    
-    if (verbose) {
-      cat("bp.t after update:\n"); print(bp.t) 
+  if (!is.null(fixed.bp)) {
+    if (any(!fixed.bp)) { 
+      # Metropolis-Hastings, sample K.t bpeakpoints, without Smin.t.              
+      if (verbose) {
+        cat("_____bp updating step (MH/MTM)_____\n") 
+      }       
+      # Generate bp.t only: Smin.t is fixed at the current state
+      met <- met.bp(bp.t=bp.t, Smin.t=Smin.t, S.obs.t=S.obs.t,  N.t=N.t, n=n, theta.t=theta.t, 
+                    C=C, mu=mu, v.bp=v.bp, fixed.bp=fixed.bp, sigma=sigma,
+                    gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)      
+      bp.t   <- met$bp.t
+      prop.ct.bp[met$idx] <- prop.ct.bp[met$idx]+1    #count accepted proposals      
+      
+      if (verbose) {
+        cat("bp.t after update:\n"); print(bp.t) 
+      }
     }
-    
   } # END fixed.bp update
   
   ### Exact via numerical integration, sample N
@@ -182,7 +183,9 @@
     if (verbose){
       cat("Bp case: Smin.t about to be stored to draws:\n"); print(Smin.t)
     }
-    if (any(!fixed.bp)){
+    if (is.null(fixed.bp)) {
+      draws <- list("N.t"=N.t, "theta.t"=theta.t, "Smin.t"=Smin.t, "S.obs.t"=S.obs.t)      
+    } else if (any(!fixed.bp)){
       if (verbose){
         cat("Bp case: bp.t about to be stored to draws:\n"); print(bp.t)
       }
@@ -191,7 +194,9 @@
       draws <- list("N.t"=N.t, "theta.t"=theta.t, "Smin.t"=Smin.t, "S.obs.t"=S.obs.t)      
     }
   } else{
-    if (any(!fixed.bp)){
+    if (is.null(fixed.bp)) {
+      draws <- list("N.t"=N.t, "theta.t"=theta.t, "S.obs.t"=S.obs.t)      
+    } else if (any(!fixed.bp)){
       draws <- list("N.t"=N.t, "theta.t"=theta.t, "bp.t"=bp.t, "S.obs.t"=S.obs.t) 
     } else {
       draws <- list("N.t"=N.t, "theta.t"=theta.t, "S.obs.t"=S.obs.t) 

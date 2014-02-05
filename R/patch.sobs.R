@@ -35,7 +35,9 @@
   
   # If breakpoints are specified then the minimum value can't be increased above the lowest breakpoint:
   S.min.range <- Smin
-  S.min.range <- min(bp)-Smin
+  if(!is.null(bp)) {
+    S.min.range <- min(bp)-Smin
+  }
   if (any(S.min.range<0)){
     stop("'bp' less than 'Smin' detected in 'patch.sobs'")
   }
@@ -55,9 +57,14 @@
     failed.indices <- (g.curr==0)
     N.failed.indices <- sum(failed.indices)
     
-    # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
-    if (S.star + S.min.range*0.1 < min(bp)){
+    if (is.null(bp)) {
+      # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
       S.star <- S.star + S.min.range*0.1
+    } else {
+      # Find the value of s_* s.t. g(lambda(s_*),E) > 0.1
+      if (S.star + S.min.range*0.1 < min(bp)){
+        S.star <- S.star + S.min.range*0.1
+      }
     }
     # Then generate from a pareto with lower limit s_* instead of S_min...
     S.obs.t[failed.indices] <- rbrokenpareto(n=N.failed.indices,x_min=S.star,k=theta.t,bp=bp,verbose=verbose) 

@@ -41,7 +41,7 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 # 1-indexed version is used now.
 args <- commandArgs(TRUE)
-args <- 3
+args <- 2
 
 cat(ppaste("Command-line arguments:\n"))
 print(args)
@@ -64,21 +64,21 @@ if (length(args)==0){
   
 } else {
   if(args==1){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_fixedSmin")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_gpnorm")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_fixedSmin")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_gpnorm")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==2){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_fixedbp")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_fixedbp")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==3){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_fixedSmin_const")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_gpnorm_fixedtau_const")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_fixedSmin_const")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_gpnorm_fixedtau_const")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } 
@@ -138,6 +138,16 @@ for (iter in 1:(num_sims_completed))
     if(input.pars$fixed.Smin!=FALSE && any(rownames(final_product$post.q)!=names(final_product$true.par))){
       nameid.sm.true <- grep("tau.1", names(final_product$true.par))
       truth[[num_so_far]] <- truth[[num_so_far]][-nameid.sm.true]
+    }
+    if(any(input.pars$fixed.theta!=FALSE)){
+      nameid.th.true <- grep("theta", names(truth[[num_so_far]]))
+      truth[[num_so_far]] <- truth[[num_so_far]][-nameid.th.true]
+      qlist[[num_so_far]] <- qlist[[num_so_far]][-nameid.th.true,]
+    }
+    if(input.pars$fixed.N!=FALSE){
+      nameid.N.true <- grep("N", names(truth[[num_so_far]]))
+      truth[[num_so_far]] <- truth[[num_so_far]][-nameid.N.true]
+      qlist[[num_so_far]] <- qlist[[num_so_far]][-nameid.N.true,]
     }
     
     # Log-Posterior
@@ -299,8 +309,9 @@ round(p_table,3)
 
 
 ## Retrieve failed indicators
-nameid <- c(1,2,3,4,5) # for nameid.N
-names  <- c("N","theta.1","theta.2","tau.1","tau.2")
+nameid <- 1:(nameid.Sobs[1]-1) # for nameid.N
+#names  <- c("N","theta.1","theta.2","tau.1","tau.2")
+names  <- names(truth[[1]])[nameid]
 
 conf.level=0.96
 ci.lo.int <- (1-conf.level)/2*100
@@ -357,7 +368,7 @@ global_coverage_plot(desired_coverage=desired_coverage,actual_coverage=t(actual_
 dev.off()
 
 # Making posterior for theta(s)
-nameid.theta <- grep("theta",names(final_product$true.par))
+nameid.theta <- grep("theta",names(truth[[1]]))
 m <- length(nameid.theta)
 if (m>1){
   names.theta <- paste("theta.",1:m,sep="")

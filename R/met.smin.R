@@ -56,8 +56,8 @@
   p0.c <- dgamma(x=Smin.t, shape=am, rate=bm, log=TRUE)
   p1.c <- sum(dbrokenpareto(S, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
   p1.curr <- p0.c + p1.c
+#  p1.curr <- dgamma(x=Smin.t, shape=am+n*theta.t[1], rate=bm, log=TRUE)
   
-  #p1.curr <- jacobian.curr + dgamma(x=Smin.t, shape=n*theta.t[1] + am, rate=bm, log=TRUE)
   p2.curr <- (N.t-n)*log(1-pi.value.curr)
   if(N.t==n){
     p2.curr <- 0
@@ -77,11 +77,11 @@
     p0.p <- dgamma(x=Smin.prop, shape=am, rate=bm, log=TRUE)
     p1.p <- sum(dbrokenpareto(S, x_min=Smin.prop, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
     p1.prop <- p0.p + p1.p
+#    p1.prop <- dgamma(x=Smin.prop, shape=am+n*theta.t[1], rate=bm, log=TRUE)
     
     # Proposal density backwards
     q.prop.to.curr <- jacobian.curr + dnorm(x=eta.t, mean=eta.prop, sd=v.sm, log=TRUE)
     
-    #p1.prop <- jacobian.prop + dgamma(x=Smin.prop, shape=n*theta.t[1] + am, rate=bm, log=TRUE)
     p2.prop <- (N.t-n)*log(1-pi.value.prop)
     if(N.t==n){
       p2.prop <- 0

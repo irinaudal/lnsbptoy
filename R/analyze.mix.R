@@ -101,10 +101,12 @@
   } else {
     Smin.t  <- fixed.Smin
   }
-  if (all(!!fixed.bp)) {
-    if (all(Smin.t>fixed.bp)) {
-      warning("Initial Smin was estimated to be smaller than fixed.bp")
-      Smin.t <- min(fixed.bp)*0.90
+  if (!is.null(fixed.bp)) {
+    if (all(!!fixed.bp)) {
+      if (all(Smin.t>fixed.bp)) {
+        warning("Initial Smin was estimated to be smaller than fixed.bp")
+        Smin.t <- min(fixed.bp)*0.90
+      }
     }
   }
   if (verbose){
@@ -117,15 +119,18 @@
   # Option 1 :: fixed.bp == NULL                 ==> No break-points
   # Option 2 :: fixed.bp == (vector of scalars)  ==> Break-points, fixed to user-specified values
   # Option 3 :: fixed.bp == FALSE                ==> Break-points, must be estimated
-  
-  if (any(!fixed.bp)){  
-    # Option 3 :: Break-points, must be estimated
-    bp.t <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C)))+Smin.t
-    idx <- (fixed.bp != FALSE)          # index of fixed values
-    bp.t[idx] <- fixed.bp[idx]       # overwrite with fixed values
+  if (!is.null(fixed.bp)) {
+    if (any(!fixed.bp)){  
+      # Option 3 :: Break-points, must be estimated
+      bp.t <- cumsum(exp(rnorm(n=m-1, mean=mu, sd=C)))+Smin.t
+      idx <- (fixed.bp != FALSE)          # index of fixed values
+      bp.t[idx] <- fixed.bp[idx]       # overwrite with fixed values
+    } else {
+      # Option 2 :: Break-points, fixed to user-specified values
+      bp.t <- fixed.bp
+    }
   } else {
-    # Option 2 :: Break-points, fixed to user-specified values
-    bp.t <- fixed.bp
+    bp.t <- NULL
   }
   if (verbose){
     cat("bp.t=\n"); print(bp.t)
@@ -261,9 +266,11 @@
     len.draws <- len.draws+1 # for Smin
     name.draws <- c(name.draws, "tau.1")
   }
-  if (any(!fixed.bp)) {
-    len.draws <- len.draws+m-1 # for bp.t
-    name.draws <- c(name.draws, paste("tau.",2:m,sep=""))
+  if (!is.null(fixed.bp)) {
+    if (any(!fixed.bp)) {
+      len.draws <- len.draws+m-1 # for bp.t
+      name.draws <- c(name.draws, paste("tau.",2:m,sep=""))
+    }
   }
   len.draws <- len.draws+n # for S.obs
   name.draws <- c(name.draws, paste("S.obs.",1:n,sep=""))
@@ -305,10 +312,11 @@
     if (any(!fixed.Smin)){
       Smin.t <- update$draws$Smin.t
     }
-    if(any(!fixed.bp)){
-      bp.t   <- update$draws$bp.t 
+    if (!is.null(fixed.bp)) {
+      if(any(!fixed.bp)){
+        bp.t   <- update$draws$bp.t 
+      }  
     }  
-    
     prop.ct.theta <- update$prop.ct.theta
     prop.ct.Smin  <- update$prop.ct.Smin
     prop.ct.bp   <- update$prop.ct.bp
