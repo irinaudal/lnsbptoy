@@ -215,7 +215,11 @@
     p.bp  <- dnorm(x=log(bp.t-Smin.t), mean=mu, sd=C, log=TRUE)
     lambda <- S.obs.t*E/gamma
     gp    <- log(g(lambda=lambda))
-    p.S   <- dbrokenpareto(S.obs.t, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE)
+    if (is.null(bp.t)) {
+      p.S   <- dpareto(S.obs.t, x_min=Smin.t, k=theta.t, log=TRUE)
+    } else {
+      p.S   <- dbrokenpareto(S.obs.t, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE)
+    }
     p.Yt  <- dpois(x=Y.obs.tot, lambda=lambda, log=TRUE)
     
     terms <- list(p.N=p.N,p.th=p.th,p.Sm=p.Sm,p.bp=p.bp,p.gp=gp,p.S=p.S,p.Yt=p.Yt)

@@ -54,9 +54,14 @@
   # try to reassemble the full conditional out of all parts: prior, p(S|pars), and pi-comp
   jacobian.curr <- -eta.t
   p0.c <- dgamma(x=Smin.t, shape=am, rate=bm, log=TRUE)
-  p1.c <- sum(dbrokenpareto(S, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
-  p1.curr <- p0.c + p1.c
-#  p1.curr <- dgamma(x=Smin.t, shape=am+n*theta.t[1], rate=bm, log=TRUE)
+  if (is.null(bp.t)) {
+    p1.c <- sum(dpareto(S, x_min=Smin.t, k=theta.t, log=TRUE)) # likelihood
+    p1.curr <- p0.c + p1.c
+#     p1.curr <- dgamma(x=Smin.t, shape=am + n*theta.t[1], rate=bm, log=TRUE)
+  } else {
+    p1.c <- sum(dbrokenpareto(S, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
+    p1.curr <- p0.c + p1.c
+  }
   
   p2.curr <- (N.t-n)*log(1-pi.value.curr)
   if(N.t==n){
@@ -75,9 +80,14 @@
     jacobian.prop <- -eta.prop
     q.curr.to.prop <- jacobian.prop + dnorm(x=eta.prop, mean=eta.t, sd=v.sm, log=TRUE)
     p0.p <- dgamma(x=Smin.prop, shape=am, rate=bm, log=TRUE)
-    p1.p <- sum(dbrokenpareto(S, x_min=Smin.prop, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
-    p1.prop <- p0.p + p1.p
-#    p1.prop <- dgamma(x=Smin.prop, shape=am+n*theta.t[1], rate=bm, log=TRUE)
+    if (is.null(bp.t)) {
+      p1.p <- sum(dpareto(S, x_min=Smin.prop, k=theta.t, log=TRUE)) # likelihood
+      p1.prop <- p0.p + p1.p
+#       p1.prop <- dgamma(x=Smin.prop, shape=am+n*theta.t[1], rate=bm, log=TRUE)
+    } else {
+      p1.p <- sum(dbrokenpareto(S, x_min=Smin.prop, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
+      p1.prop <- p0.p + p1.p
+    }
     
     # Proposal density backwards
     q.prop.to.curr <- jacobian.curr + dnorm(x=eta.t, mean=eta.prop, sd=v.sm, log=TRUE)

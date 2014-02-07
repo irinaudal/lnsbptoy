@@ -40,7 +40,7 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 ## Handle batch job arguments:
 args <- commandArgs(TRUE)  # 1-indexed version is used now.
-#args <- 17
+#args <- 2
 cat(paste("Command-line arguments:\n"))
 print(args)
 
@@ -73,14 +73,14 @@ do.mcmc.plots  <- ifelse(sim_num<1011,TRUE,FALSE)
 
 model <- "bp"
 
-fixed.theta <- 1.1 #c(.6,1.2)   # Vector of values / FALSE
-fixed.N     <- 150 #FALSE  # Value / FALSE
+fixed.theta <- FALSE #c(.6,1.2)   # Vector of values / FALSE
+fixed.N     <- FALSE #150 #FALSE  # Value / FALSE
 fixed.Smin  <- FALSE #1*10^-13
-fixed.bp    <- NULL #FALSE #4*10^-13
+fixed.bp    <- FALSE #4*10^-13
 fixed.S.obs <- FALSE
 fixed.S.mis <- FALSE
 
-outer.dir.extra     <- paste("/bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const", sep="")
+outer.dir.extra     <- paste("/bp_lns_toy_example_gpnorm_mc500", sep="")
 output.dir.extra    <- paste("/dataset_",sim_num,sep="")
 output.dir.outer    <- paste(main.dir,outer.dir.extra,sep="")
 output.dir          <- paste(output.dir.outer,output.dir.extra,sep="")
@@ -106,17 +106,17 @@ if (!file.exists(output.dir)){   #set directory - done after simulate()
 }
 
 # Use Normal additive error in approximation of the term pi(S)
-sigma.vec <- c(0, 0.00001, 0.0001, 0.001, 0.004, 0.01, 0.05, 0.1, 0.2)
+sigma.vec <- c(0, 0.00001, 0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.2)
 subset <- 1 #c(1:9)
 sigma.vec <- sigma.vec[subset]
 length.jobs <- length(sigma.vec)
 
 # Incompleteness
 "g.func" <- function(lambda) {
-  return(rep(0.8,length(lambda)))   # constant incompleteness
-  #return(pnorm(lambda,mean=8,sd=26))   # 1 minus exponential decay
+  #return(rep(0.8,length(lambda)))   # constant incompleteness
+  return(pnorm(lambda,mean=8,sd=26))   # 1 minus exponential decay
 }
-nsamples  <- 10000
+nsamples  <- 500000
 E <- 190000
 gamma <- 1.6*(10^(-9))
 
@@ -128,11 +128,11 @@ v.so  <- 2.0*(10^(-13)) # proposal sd for S, flux
 
 # Parameters for Normal priors for break-point(s):
 mu <- -30 # c(-30) # dim: eta(bp)=m-1
-C  <- c(0.5) 
+C  <- 0.5 # c(0.5) 
 ##############################
 # Parameters for Gamma prior(s) for theta(s):
-a <- 10 #c(10,30) #c(12,10) #c(25,30)
-b <- 20 #c(20,30) #c(18,10) #c(40,30)
+a <- c(10,30) #c(12,10) #c(25,30)
+b <- c(20,30) #c(18,10) #c(40,30)
 ##############################
 # Parameters for Gamma prior(s) for minimum threshold parameter Smin(s):
 Smin.prior.mean <- 1.0*10^(-13)    # Mean = am * bm
@@ -233,7 +233,7 @@ for (job_num in 1:length.jobs ) {
                        fixed.Smin=fixed.Smin, fixed.bp=fixed.bp,
                        print.every=print.every, 
                        save.every=save.every, save.progress=save.progress, save.progress.dir=output.dir,
-                       store_logPost=store_logPost,
+                       store_logPost=store_logPost, sigma=sigma,
                        tune.iter=tune.iter, stop.tune=stop.tune, verbose=verbose)
   
   endMCMCTime <- proc.time()

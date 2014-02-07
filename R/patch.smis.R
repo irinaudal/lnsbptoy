@@ -37,7 +37,11 @@
     
     # Find the value of S_{upper} s.t. g(lambda(S_{upper}),E) < 0.9
     # Then generate from a pareto with lower limit S_min, but now upper-truncated at S.upper...
-    S.mis.t[failed.indices] <- rbrokenpareto(n=N.failed.indices,x_min=Smin,k=theta.t,bp=bp,verbose=verbose)     #vector of initial values: S.obs0
+    if (is.null(bp)) {
+      S.mis.t[failed.indices] <- rpareto(n=N.failed.indices,x_min=Smin,k=theta.t,verbose=verbose)     #vector of initial values: S.obs0
+    } else {
+      S.mis.t[failed.indices] <- rbrokenpareto(n=N.failed.indices,x_min=Smin,k=theta.t,bp=bp,verbose=verbose)     #vector of initial values: S.obs0
+    }
     lambda.curr <- S.mis.t[failed.indices]*E/gamma
     g.curr[failed.indices] <- g(lambda=lambda.curr)
     

@@ -25,13 +25,13 @@
   m <- length(theta)
  
   # evaluate pi with error
-  pi <- g(lambda=Smin*E/gamma) + rnorm(1,mean=0,sd=sigma)  # NOTE: this g==CONST
+#   pi <- g(lambda=Smin*E/gamma) + rnorm(1,mean=0,sd=sigma)  # NOTE: this g==CONST
   
-#   # Use Monte Carlo integration 
-#   tmp <- pi.theta.eval.mc(nsamples=nsamples, theta.grid=theta, Smin.grid=Smin, bp.grid=bp, 
-#                           m=m, gamma=gamma, E=E, g=g, verbose=verbose)
-# 
-#   pi <- tmp$pi
+  # Use Monte Carlo integration 
+  tmp <- pi.theta.eval.mc(nsamples=nsamples, theta.grid=theta, Smin.grid=Smin, bp.grid=bp, 
+                          m=m, gamma=gamma, E=E, g=g, verbose=verbose)
+
+  pi <- tmp$pi
   
   if (truncate) {
     if(verbose)

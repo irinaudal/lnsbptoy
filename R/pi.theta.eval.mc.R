@@ -67,7 +67,11 @@
     # Generate source flux S:
     ## Generalizing to handle both break-points and untruncated mixtures
     # Generate from broken power-law mixture of Truncated Pareto's:
-    S <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose3)
+    if (is.null(bp)) {
+      S <- rpareto(n=N,x_min=Smin,k=theta,verbose=verbose3)
+    } else {
+      S <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose3)
+    }
     idx <- S==Inf
     # sanity check for poor parameter coeeficients
     if(any(idx)){
@@ -87,7 +91,11 @@
     pi[i] <- n/N
     
     if (verbose) {
-      cat(c("Computed pi(theta,Smin,bp) for Smin =",ppaste(signif(Smin,5)),"; bp =",ppaste(signif(bp,5)),"; theta = ",ppaste(round(theta,5))," (",i,"/",length.theta,") ; Pr(Obs) = ",round(pi[i],5),"\n"))            
+      if (!is.null(fixed.bp)) {
+        cat(c("Computed pi(theta,Smin,bp) for Smin =",ppaste(signif(Smin,5)),"; bp =",ppaste(signif(bp,5)),"; theta = ",ppaste(round(theta,5))," (",i,"/",length.theta,") ; Pr(Obs) = ",round(pi[i],5),"\n"))            
+      } else {
+        cat(c("Computed pi(theta,Smin) for Smin =",ppaste(signif(Smin,5)),"; theta = ",ppaste(round(theta,5))," (",i,"/",length.theta,") ; Pr(Obs) = ",round(pi[i],5),"\n"))            
+      }
     }
     
   }

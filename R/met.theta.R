@@ -50,9 +50,14 @@
   m <- length(theta.t)
   
   # Prepare gamma parameters for theta for portion of theta posterior
-  post.pars <- brokenpareto.posterior(a=a,b=b,S.obs=S.obs.t,S.mis=NULL,Smin=Smin.t,bp=bp.t,verbose=verbose)
-  a.post <- post.pars$a
-  b.post <- post.pars$b
+  if (is.null(bp.t)) {
+    a.post <- a + n
+    b.post <- b + sum(log(S.obs.t/Smin))   
+  } else {
+    post.pars <- brokenpareto.posterior(a=a,b=b,S.obs=S.obs.t,S.mis=NULL,Smin=Smin.t,bp=bp.t,verbose=verbose)
+    a.post <- post.pars$a
+    b.post <- post.pars$b
+  }
   
   if(verbose){
     cat("Param: a in post.theta:\n"); print(a.post)

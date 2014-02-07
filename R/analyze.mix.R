@@ -207,8 +207,13 @@
       
     } else if (N.t>n){
       
-      # Generate from broken power-law mixture of Truncated Pareto's:
-      S.mis.t <- rbrokenpareto(n=N.t-n,x_min=Smin.t,k=theta.t,bp=bp.t,verbose=verbose)     #vector of initial values: S.mis0
+      if (!is.null(fixed.bp)) {
+        # Generate from broken power-law mixture of Truncated Pareto's:
+        S.mis.t <- rbrokenpareto(n=N.t-n,x_min=Smin.t,k=theta.t,bp=bp.t,verbose=verbose)     #vector of initial values: S.mis0
+      } else {
+        # Generate from single Pareto:
+        S.mis.t <- rpareto(n=N.t-n,k=theta.t,x_min=Smin.t,verbose=verbose) #vector of initial values: S.obs0
+      }
       # Check starting states of the missing sources are all valid...
       S.mis.t <- patch.smis(S.mis.t=S.mis.t, theta.t=theta.t, Smin=Smin.t, bp=bp.t,
                             E=E, gamma=gamma, g=g, verbose=verbose)

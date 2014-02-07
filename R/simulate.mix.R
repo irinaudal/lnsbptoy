@@ -98,7 +98,7 @@
   # fixed.bp has 3 options:
   # Option 2 :: fixed.bp == (vector of scalars)  ==> Break-points, fixed to user-specified values
   # Option 3 :: fixed.bp == FALSE or TRUE        ==> Break-points, must be estimated
-  if(!is.null(fixed.bp)) {
+  if (!is.null(fixed.bp)) {
     
     if (any(is.logical(fixed.bp))){
       #       if (any(!fixed.bp)){  
@@ -121,9 +121,13 @@
 
   # Generate source flux S:
   ## Generalizing to handle both break-points and untruncated mixtures
-  # Generate from broken power-law mixture of Truncated Pareto's:
-  S     <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose)
-  
+  if (!is.null(fixed.bp)) {
+    # Generate from broken power-law mixture of Truncated Pareto's:
+    S <- rbrokenpareto(n=N,x_min=Smin,k=theta,bp=bp,verbose=verbose)
+  } else {
+    # Generate from single Pareto:
+    S <- rpareto(n=N,k=theta,x_min=Smin,verbose=verbose)
+  }
   # Generate photon counts:
   Ybkg <- 0
   lambda.src <- S*E/gamma    #CDFS: src_count [ct] = (flux [erg/s/cm^2] * exposure_time [s])/ (eff_mean_src_exp * 1.06e-11 [ergs/cm^2/ct])

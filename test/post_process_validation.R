@@ -70,9 +70,9 @@ if (length(args)==0){
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==2){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_pareto_g08_sigma005_fixedNtheta_const")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_pareto_g_0.8_fixedNtheta_const")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_pareto_g08_sigma005_fixedNtheta_const")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==3){

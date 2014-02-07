@@ -116,3 +116,11 @@ TODO various model checks:
 5. Fixed N, theta;  tau only; non-const g, m=1,       pareto  ->  ?
 6. Fixed N, theta;  tau only;     const g, m=1,       pareto  ->  ?
 
+
+Must check 2 additional cases for Single Pareto Model:
+A. sampling Smin via simple pareto function
+B. sampling Smin via the simplified function of gamma
+
+Also,
+Check if sampling Smin from log-normal directly will improve the result. (it should not be any different)
+

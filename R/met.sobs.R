@@ -30,7 +30,11 @@
   lambda.curr <- S.obs.t * E/gamma
   g.curr <- g(lambda=lambda.curr)
 
-  p1.curr <- dbrokenpareto(S.obs.t, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)
+  if (is.null(bp.t)) {
+    p1.curr <- dpareto(S.obs.t, x_min=Smin.t, k=theta.t, log=TRUE)
+  } else {
+    p1.curr <- dbrokenpareto(S.obs.t, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)
+  }
   p2.curr <- dpois(x=Y.obs.tot, lambda=lambda.curr, log=TRUE) #density of Y.obs.tot, with k=0. (Pois+Binom term)
   p.curr <- p1.curr + p2.curr + log(g.curr)
 
@@ -56,7 +60,11 @@
   lambda.prop[bad.prop] <- NA             #set the negative lambda proposals to NA
   g.prop <- g(lambda=lambda.prop)   #vector of proposed prob. of observing sources, not saved  
   
-  p1.prop <- dbrokenpareto(S.obs.prop, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)
+  if (is.null(bp.t)) {
+    p1.prop <- dpareto(S.obs.prop, x_min=Smin.t, k=theta.t, log=TRUE)
+  } else {
+    p1.prop <- dbrokenpareto(S.obs.prop, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)
+  }
   p2.prop <- dpois(x=Y.obs.tot, lambda=lambda.prop, log=TRUE) #density of Y.obs.tot, with k=0.
   p.prop <- p1.prop + p2.prop + log(g.prop)
   p.prop[bad.prop] <- -Inf

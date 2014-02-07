@@ -37,8 +37,11 @@
     idx <- 0
   } else {
     
-    S.mis.prop <- rbrokenpareto(n=N.t-n,x_min=Smin.t,k=theta.t,bp=bp.t)   #vector of proposals of S.mis    
-    
+    if (is.null(bp.t)) {
+      S.mis.prop <- rpareto(n=N.t-n,x_min=Smin.t,k=theta.t)               #vector of proposals of S.mis        
+    } else {
+      S.mis.prop <- rbrokenpareto(n=N.t-n,x_min=Smin.t,k=theta.t,bp=bp.t)   #vector of proposals of S.mis    
+    }
     lambda.prop <- S.mis.prop*E/gamma           #vector of proposed lambda for missing cources, not saved
     lambda.prop[lambda.prop <= 0] <- NA             #set the negative lambda proposals to NA
     g.prop <- 1-g(lambda=lambda.prop)   #vector of proposed prob. of missing sources, not saved  
@@ -69,8 +72,11 @@
       n.tries <- n.tries+1     
       # In this case, we have to propose more S.mis:
       N.fail <- sum(failed.indices)
-      S.mis.prop[failed.indices] <- rbrokenpareto(n=N.fail,x_min=Smin.t,k=theta.t,bp=bp.t)  #vector of proposals of S.mis    
-      
+      if (is.null(bp.t)) {
+        S.mis.prop[failed.indices] <- rpareto(n=N.fail,x_min=Smin.t,k=theta.t)  #vector of proposals of S.mis    
+      } else {
+        S.mis.prop[failed.indices] <- rbrokenpareto(n=N.fail,x_min=Smin.t,k=theta.t,bp=bp.t)  #vector of proposals of S.mis    
+      }
       lambda.prop <- S.mis.prop[failed.indices]*E/gamma           #vector of proposed lambda for missing cources, not saved
       lambda.prop[lambda.prop <= 0] <- NA             #set the negative lambda proposals to zero
       g.prop <- 1-g(lambda=lambda.prop)   #vector of proposed prob. of missing sources, not saved  
