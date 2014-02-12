@@ -4,15 +4,22 @@ Test Break-Point toy example: lnsbptoy GitHub Package README
 Irina S. Udaltsova / Paul D. Baines
 
 First written: 01/16/14
-Last update:   01/16/14
+Last update:   02/11/14
 
 
 # Computing summary for LNSBP project #
 
 - Added files to repository
-- In the middle of editing single version of the code
+- Tested the bp code
+- Included the single Pareto functionality. For this, must change hyper parameters: a,b,mu,C.
+- Checking validations
+- TODO: precompute pi(theta)
+
 
 ## Validation ##
 
-TBA
+- bp model with constant g=0.08 and constant pi=0.8 is validated.
+- All bp models with g=Normal-CDF have failed because pi is approximated via MC. This appears to be the issue.
+
+
 

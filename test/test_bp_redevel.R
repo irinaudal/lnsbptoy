@@ -57,8 +57,8 @@ set.seed(762*sim_num + 1330931 + 10231*92)
 ###################
 
 # Set simulation parameters
-niter  <- 120000
-burnin <-  20000
+niter  <- 1200#00
+burnin <-  200#00
 tune.iter <- 100
 stop.tune <- 10000
 verbose <- FALSE
@@ -80,7 +80,7 @@ fixed.bp    <- FALSE #4*10^-13
 fixed.S.obs <- FALSE
 fixed.S.mis <- FALSE
 
-outer.dir.extra     <- paste("/bp_lns_toy_example_gpnorm_mc500", sep="")
+outer.dir.extra     <- paste("/bp_lns_toy_example_gpnorm_mc10", sep="")
 output.dir.extra    <- paste("/dataset_",sim_num,sep="")
 output.dir.outer    <- paste(main.dir,outer.dir.extra,sep="")
 output.dir          <- paste(output.dir.outer,output.dir.extra,sep="")
@@ -116,7 +116,7 @@ length.jobs <- length(sigma.vec)
   #return(rep(0.8,length(lambda)))   # constant incompleteness
   return(pnorm(lambda,mean=8,sd=26))   # 1 minus exponential decay
 }
-nsamples  <- 500000
+nsamples  <- 10000
 E <- 190000
 gamma <- 1.6*(10^(-9))
 
