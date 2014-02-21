@@ -52,6 +52,7 @@ export(
        pi.theta.eval.mc,
        
        pi.theta.debug.plot,
+       grid.select,
 
        trace.mcmc.plot,
        posterior.theta,

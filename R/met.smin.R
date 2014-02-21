@@ -1,5 +1,5 @@
 "met.smin" <- function(Smin.t, bp.t, N.t, n, theta.t, S.obs.t, am,bm, v.sm,
-                       gamma, E, g, nsamples, sigma, 
+                       gamma, E, g, nsamples, pi, sigma, 
                        verbose=FALSE){
   
   ####################################################################################################
@@ -50,14 +50,13 @@
   # current state
   eta.t <- log(Smin.t)
   pi.value.curr <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                                E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   # try to reassemble the full conditional out of all parts: prior, p(S|pars), and pi-comp
-  jacobian.curr <- -eta.t
   p0.c <- dgamma(x=Smin.t, shape=am, rate=bm, log=TRUE)
   if (is.null(bp.t)) {
     p1.c <- sum(dpareto(S, x_min=Smin.t, k=theta.t, log=TRUE)) # likelihood
-    p1.curr <- p0.c + p1.c
-#     p1.curr <- dgamma(x=Smin.t, shape=am + n*theta.t[1], rate=bm, log=TRUE)
+#     p1.curr <- p0.c + p1.c
+    p1.curr <- dgamma(x=Smin.t, shape=am + n*theta.t[1], rate=bm, log=TRUE)
   } else {
     p1.c <- sum(dbrokenpareto(S, x_min=Smin.t, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
     p1.curr <- p0.c + p1.c
@@ -69,34 +68,34 @@
   }
   p.curr <- p1.curr + p2.curr
   
-  # proposal state
+  # proposal state: Smin ~ log-Normal
   eta.prop <- rnorm(n=1, mean=eta.t, sd=v.sm)    #v.sm = tuning parameter (vector) to accept 20-60% of proposals
   Smin.prop <- exp(eta.prop)
   
   if (0 < Smin.prop && all(Smin.prop < bp.t) && Smin.prop < upperBound) {
     pi.value.prop <- pi.theta.get(theta=theta.t, Smin=Smin.prop, bp=bp.t, gamma=gamma, 
-                                  E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                  E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+    
     # try to reassemble the full conditional out of all parts: prior, p(S|pars), and pi-comp
-    jacobian.prop <- -eta.prop
-    q.curr.to.prop <- jacobian.prop + dnorm(x=eta.prop, mean=eta.t, sd=v.sm, log=TRUE)
     p0.p <- dgamma(x=Smin.prop, shape=am, rate=bm, log=TRUE)
     if (is.null(bp.t)) {
       p1.p <- sum(dpareto(S, x_min=Smin.prop, k=theta.t, log=TRUE)) # likelihood
-      p1.prop <- p0.p + p1.p
-#       p1.prop <- dgamma(x=Smin.prop, shape=am+n*theta.t[1], rate=bm, log=TRUE)
+#       p1.prop <- p0.p + p1.p
+      p1.prop <- dgamma(x=Smin.prop, shape=am + n*theta.t[1], rate=bm, log=TRUE)
     } else {
       p1.p <- sum(dbrokenpareto(S, x_min=Smin.prop, k=theta.t, bp=bp.t, log=TRUE, verbose=verbose2)) # likelihood
       p1.prop <- p0.p + p1.p
     }
-    
-    # Proposal density backwards
-    q.prop.to.curr <- jacobian.curr + dnorm(x=eta.t, mean=eta.prop, sd=v.sm, log=TRUE)
-    
     p2.prop <- (N.t-n)*log(1-pi.value.prop)
     if(N.t==n){
       p2.prop <- 0
     }
     p.prop <- p1.prop + p2.prop
+
+    # transition density: log-normal
+    q.curr.to.prop <- dlnorm(x=Smin.prop, meanlog=eta.t,    sdlog=v.sm, log=TRUE)
+    q.prop.to.curr <- dlnorm(x=Smin.t,    meanlog=eta.prop, sdlog=v.sm, log=TRUE)
+    
   } else {
     p.prop <- q.prop.to.curr <- -Inf
     q.curr.to.prop <- 0

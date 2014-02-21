@@ -1,5 +1,5 @@
 "met.theta" <- function(theta.t, Smin.t, bp.t, S.obs.t, N.t, n, v.th, 
-                        a, b, gamma, E, g, nsamples, sigma,
+                        a, b, gamma, E, g, nsamples, pi, sigma,
                         fixed.theta=NULL, verbose=FALSE ){ 
   
   ####################################################################################################
@@ -52,7 +52,7 @@
   # Prepare gamma parameters for theta for portion of theta posterior
   if (is.null(bp.t)) {
     a.post <- a + n
-    b.post <- b + sum(log(S.obs.t/Smin))   
+    b.post <- b + sum(log(S.obs.t/Smin.t))   
   } else {
     post.pars <- brokenpareto.posterior(a=a,b=b,S.obs=S.obs.t,S.mis=NULL,Smin=Smin.t,bp=bp.t,verbose=verbose)
     a.post <- post.pars$a
@@ -68,7 +68,7 @@
   
   # current state
   pi.value.curr <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                                E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   p1.curr <- sum(dgamma(x=theta.t, shape=a.post, rate=b.post, log=TRUE))
   p2.curr <- (N.t-n)*log(1-pi.value.curr)
   if(N.t==n){
@@ -84,7 +84,7 @@
   
   if (all(theta.prop>0)){
     pi.value.prop <- pi.theta.get(theta=theta.prop, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                                  E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                  E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
     p1.prop <- sum(dgamma(x=theta.prop, shape=a.post, rate=b.post, log=TRUE))
     p2.prop <- (N.t-n)*log(1-pi.value.prop)
     if(N.t==n){

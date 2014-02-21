@@ -1,6 +1,6 @@
 "update.lns" <- function(S.obs.t, theta.t, Smin.t, bp.t, N.t, n, Y.obs.tot, S.mis.t, v.so, v.th, v.sm, v.bp, niter,
                          prop.ct.S.obs, prop.ct.S.mis,  prop.ct.theta, prop.ct.Smin, prop.ct.bp,
-                         alpha, beta, a, b, am, bm, C, mu, gamma, E, g, nsamples, sigma,
+                         alpha, beta, a, b, am, bm, C, mu, gamma, E, g, nsamples, pi, sigma,
                          fixed.N=FALSE, fixed.theta=FALSE, fixed.S.obs=FALSE, fixed.S.mis=FALSE, 
                          fixed.Smin=FALSE, fixed.bp=NULL, store_logPost=FALSE,
                          verbose=FALSE){
@@ -109,7 +109,7 @@
       cat("_____theta.t updating step (Rej.Sampl/MH)_____\n") 
     }  
     rej <- met.theta(theta.t=theta.t, S.obs.t=S.obs.t, N.t=N.t, n=n, Smin.t=Smin.t, bp.t=bp.t,
-                     a=a, b=b, v.th=v.th, fixed.theta=fixed.theta, sigma=sigma,
+                     a=a, b=b, v.th=v.th, fixed.theta=fixed.theta, pi=pi, sigma=sigma,
                      gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)  
     theta.t <- rej$theta.t                                #next value of theta at iteration t=iter+1
     prop.ct.theta[rej$idx] <- prop.ct.theta[rej$idx]+1    #count accepted proposals 
@@ -128,7 +128,7 @@
       cat("_____Smin.t updating step (Rej.Sampl/MH/MTM)_____\n") 
     }
     smp <- met.smin(Smin.t=Smin.t, N.t=N.t, n=n, theta.t=theta.t, bp.t=bp.t, S.obs.t=S.obs.t,
-                    am=am, bm=bm, v.sm=v.sm, sigma=sigma,
+                    am=am, bm=bm, v.sm=v.sm, pi=pi, sigma=sigma,
                     gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)      
     Smin.t <- smp$Smin.t                        #next value of Smin.t at iteration t=iter+1
     prop.ct.Smin[smp$idx] <- prop.ct.Smin[smp$idx]+1 # count accepted proporals
@@ -148,7 +148,7 @@
       }       
       # Generate bp.t only: Smin.t is fixed at the current state
       met <- met.bp(bp.t=bp.t, Smin.t=Smin.t, S.obs.t=S.obs.t,  N.t=N.t, n=n, theta.t=theta.t, 
-                    C=C, mu=mu, v.bp=v.bp, fixed.bp=fixed.bp, sigma=sigma,
+                    C=C, mu=mu, v.bp=v.bp, fixed.bp=fixed.bp, pi=pi, sigma=sigma,
                     gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)      
       bp.t   <- met$bp.t
       prop.ct.bp[met$idx] <- prop.ct.bp[met$idx]+1    #count accepted proposals      
@@ -167,7 +167,7 @@
     }   
     #      ni <- numint.N(N.t, theta.t=theta.t, n=n, alpha=alpha, beta=beta, pi=pi, verbose=verbose)
     ni <- numint.N(N.t, theta.t=theta.t, n=n, Smin.t=Smin.t, bp.t=bp.t,
-                   alpha=alpha, beta=beta, sigma=sigma,
+                   alpha=alpha, beta=beta, pi=pi, sigma=sigma,
                    gamma=gamma, E=E, g=g, nsamples=nsamples, verbose=verbose)      
     N.t <- ni$N.t                        #next value of N at iteration t=iter+1
     
@@ -207,7 +207,7 @@
     # Evaluate log(posterior)
     # works for cage: g=1, pi=1, dim(bp)=1, Smin~gamma, g.type="smooth"
     pi.value <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, E=E,
-                             nsamples=nsamples, sigma=sigma, g=g, verbose=verbose>1)     #marginal prob. of observing sources  
+                             nsamples=nsamples, sigma=sigma, g=g, pi=pi, verbose=verbose>1)     #marginal prob. of observing sources  
     pi.const <- ifelse(N.t==n,0,(N.t-n)*log(1.0-pi.value))
     p.N   <- lgamma(N.t+alpha)-lgamma(N.t-n+1) + pi.const - N.t*log(1+beta)
     p.th  <- sum(dgamma(x=theta.t, shape=a, rate=b, log=TRUE)) 

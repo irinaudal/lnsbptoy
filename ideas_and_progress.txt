@@ -124,3 +124,36 @@ B. sampling Smin via the simplified function of gamma
 Also,
 Check if sampling Smin from log-normal directly will improve the result. (it should not be any different)
 
+\
+
+
+
+> for(pp in successful_dataset_indices.Smis){if(is.na(truth.Smis[[pp]][1])){print(pp)}}
+[1] 10
+[1] 33
+[1] 39
+[1] 69
+[1] 125
+[1] 155
+[1] 171
+[1] 180
+[1] 238
+[1] 255
+[1] 282
+[1] 320
+[1] 347
+[1] 443
+
+IDX <- c(10,33,39,69,125,155,171,180,238,255,282,320,347,443)
+
+for(pp in IDX) {
+ #print(pp)
+ print(sum(cover_indicators[[pp]][1,]))
+}
+
+Ntemp <- numeric(0); ctr=0
+for(pp in IDX) {
+ ctr=ctr+1
+ Ntemp[ctr]=(truth[[pp]][1])
+}
+

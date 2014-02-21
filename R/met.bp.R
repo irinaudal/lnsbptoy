@@ -1,5 +1,5 @@
 "met.bp" <- function(bp.t, Smin.t, S.obs.t, theta.t, N.t, n, v.bp,
-                     C, mu, gamma, E, g, nsamples, sigma,
+                     C, mu, gamma, E, g, nsamples, pi, sigma,
                      fixed.bp=NULL, 
                      TOL=1e-10,
                      verbose=FALSE ){
@@ -52,7 +52,7 @@
   eta.t <- log(diff(tau))
   
   pi.value.curr <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                                E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   # pi.value.curr <- ifelse(any(pi.value.curr>-Inf), pi.value, NA) #sanity check
   
   p1.curr <- sum(dnorm(x=eta.t, mean=mu, sd=C, log=TRUE)) # prior, no Jacobian
@@ -83,7 +83,7 @@
   }
   
   pi.value.prop <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                                E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   # pi.value.prop <- ifelse(any(pi.value.prop>-Inf), pi.value, NA) #sanity check
   
   if (any(Smin.t > bp.prop)) {

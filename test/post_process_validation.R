@@ -15,7 +15,8 @@ if (Sys.info()["sysname"]=="Darwin"){
   main.dir   <- "~/Dropbox/Log_N_Log_S/R_Code"
   setwd(main.dir)
   libsrc.dir <- "."
-  library(logNlogS)
+#  library(logNlogS)
+  library(lnsbptoy)
   
   # } else if (Sys.info()["sysname"]=="Linux"){
   #   
@@ -29,7 +30,8 @@ if (Sys.info()["sysname"]=="Darwin"){
 } else if (Sys.info()["sysname"]=="Linux"){
   
   libdir <- "/home/isudal/R/x86_64-pc-linux-gnu-library/3.0/"
-  library(logNlogS,lib.loc=libdir)
+#  library(logNlogS,lib.loc=libdir)
+  library(lnsbptoy,lib.loc=libdir)
   main.dir   <- "/home/isudal/bplns"
   setwd(main.dir)
   libsrc.dir <- "."
@@ -41,7 +43,7 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 # 1-indexed version is used now.
 args <- commandArgs(TRUE)
-args <- 2
+args <- 1
 
 cat(ppaste("Command-line arguments:\n"))
 print(args)
@@ -64,9 +66,9 @@ if (length(args)==0){
   
 } else {
   if(args==1){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_gpnorm")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_1bp_g_8_prec")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_gpnorm")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_1bp_g_8_prec_ex1")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==2){
@@ -76,9 +78,9 @@ if (length(args)==0){
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } else if(args==3){
-    fp.input <- file.path(main.dir,"bp_lns_toy_example_gpnorm_fixedtau_const")
+    fp.input <- file.path(main.dir,"bp_lns_toy_example_pareto_gpnorm_mc10k")
     fp.dataend <- "store_image.RData"
-    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_gpnorm_fixedtau_const")
+    fp.output <- file.path(main.dir,"validation/bp_lns_toy_example_pareto_mc10k")
     total_num_sims     <- 500#4#1100
     num_sims_completed <- 500#4#1100
   } 
@@ -108,7 +110,7 @@ truth.Smis <- list(NULL)
 
 num_so_far <- 0
 
-for (iter in 1:(num_sims_completed))
+for (iter in 1:num_sims_completed)
 {
   sim_num <- sim_start + iter
   qs <- try(load(file.path(fp.input,ppaste("dataset_",sim_num),fp.dataend)),silent=TRUE)
@@ -126,8 +128,12 @@ for (iter in 1:(num_sims_completed))
       print(truth.Smis[[num_so_far]])
     }
     
+    # Remove missing source entries if either no missing sources present
     if (is.null(final_product$post.q.S.mis)) {
       truth.Smis[[num_so_far]] <- NULL
+    }
+    if (is.null(final_product$true.S.mis)) {
+      qlist.Smis[[num_so_far]] <- NULL
     }
     
     # fixed.pars
@@ -165,57 +171,6 @@ for (iter in 1:(num_sims_completed))
       # Remove log-posterior from qlist
       qlist[[num_so_far]] <- qlist[[num_so_far]][-nameid.logPost.post,]
     }      
-    
-    
-#     # Clean up fixed Smin's and fixed 'bp's in true.par
-#     nameid.Smin.true <- grep("Smin", names(final_product$true.par))
-#     nameid.Smin.post <- grep("Smin", rownames(final_product$post.q))
-#     
-#     if (length(nameid.Smin.post)==0){
-#       # case: all Smin were fixed, so remove from true.par
-#       if (length(nameid.Smin.true)>0){
-#         warning("All Smin were fixed, so ... removing them from true.par vector")
-#         truth[[num_so_far]]    <- truth[[num_so_far]][-nameid.Smin.true]
-#       }    
-#     } 
-#     
-#     nameid.bp.true <- grep("bp", names(final_product$true.par))
-#     nameid.bp.post <- grep("bp", rownames(final_product$post.q))
-#     
-#     if (length(nameid.bp.post)==0){
-#       # case: all bp were fixed, so remove from true.par
-#       if (length(nameid.bp.true)>0){
-#         warning("All 'bp' were fixed, so ... removing them from true.par vector")
-#         truth[[num_so_far]]    <- truth[[num_so_far]][-nameid.bp.true]
-#       }
-#     } 
-#     
-#     if (length(nameid.Smin.post)>0 && length(nameid.bp.post)>0){ # case: check if some Smin/bp were fixed, if yes, remove those from both true.par AND post.q
-#       
-#       for(j in length(nameid.Smin.post)){
-#         unique.len.post <- length( unique(final_product$post.q[nameid.Smin.post[j], ]) )
-#         if (unique.len.post==1){ # all Smin values are the same in post.q
-#           # remove this entry of Smin from both true.par and post.q
-#           cat("\nSome Smin were fixed, so ... removing them from true.par and post.q vectors.\n\n")
-#           final_product$true.par[nameid.Smin.true[j]] <- final_product$true.par[-nameid.Smin.true[j]]
-#           final_product$post.q[nameid.Smin.post[j], ] <- final_product$post.q[-nameid.Smin.post[j], ]
-#         }
-#       }
-#       for(j in length(nameid.bp.post)){
-#         unique.len.post <- length( unique(final_product$post.q[nameid.bp.post[j], ]) )
-#         if (unique.len.post==1){ # all Smin values are the same in post.q
-#           # remove this entry of Smin from both true.par and post.q
-#           cat("\nSome 'bp' were fixed, so ... removing them from true.par and post.q vectors.\n\n")
-#           final_product$true.par[nameid.bp.true[j]] <- final_product$true.par[-nameid.bp.true[j]]
-#           final_product$post.q[nameid.bp.post[j], ] <- final_product$post.q[-nameid.bp.post[j], ]
-#         }
-#       }
-#       qlist[[num_so_far]]      <- final_product$post.q
-#       truth[[num_so_far]]      <- as.numeric(final_product$true.par)
-#       names(truth[[num_so_far]]) <- names(final_product$true.par)
-#       
-#     } # END removing fixed parameters
-#     
     
     if(verbose2){
       cat("head(truth vector): \n")
@@ -268,22 +223,26 @@ for (i in 1:(num_sims_completed)){
   }
 }
 
+N.idx <- grep("N",all.par.names)
 sobs.index.start <- min(grep("S.obs",all.par.names))
 fixed.par.names <- all.par.names[1:(sobs.index.start-1)]
 
-coverage_out      <- cover_func(X=qlist,truth=truth,type='one-sided',return.type='all',fixed.dims=c(1:(sobs.index.start-1)),verbose=verbose2)
+coverage_out      <- cover_func(X=qlist,truth=truth,type='one-sided',return.type='all',
+                                fixed.dims=c(1:(sobs.index.start-1)), nonfixed.names="S.obs",
+                                discrete.dims=N.idx, verbose=verbose2)
 coverage_out.Smis <- cover_func(X=qlist.Smis,truth=truth.Smis,type='one-sided',return.type='all',fixed.dims=NULL,verbose=verbose2)
 
 cover_indicators  <- coverage_out$indicators
 prop_cover        <- coverage_out$proportions
 successful_dataset_indices <- coverage_out$successful_dataset_indices
+fixed.par.names   <- rownames(coverage_out$proportions)
 
 cover_indicators.Smis  <- coverage_out.Smis$indicators
 prop_cover.Smis        <- coverage_out.Smis$proportions
-successful_dataset_indices.Smis <- numeric(0)
 successful_dataset_indices.Smis <- coverage_out.Smis$successful_dataset_indices
 
 num_sims_successfully_completed <- length(successful_dataset_indices)
+num_sims_successfully_completed.Smis <- length(successful_dataset_indices.Smis)
 
 ####
 ## logical(0) for datasets not analyzed
@@ -291,7 +250,7 @@ num_sims_successfully_completed <- length(successful_dataset_indices)
 
 cat("\nThere were ",num_sims_successfully_completed,
     " datasets that were successfully analyzed.\n\n",sep="")
-cat("\nThere were ",length(successful_dataset_indices.Smis),
+cat("\nThere were ",num_sims_successfully_completed.Smis,
     " datasets that had MCMC samples of S.mis.\n\n",sep="")
 
 ## Create nice looking table for results:
@@ -344,14 +303,11 @@ for(j in 1:length(nameid)){
 
 actual_coverage      <- prop_cover
 actual_coverage.Smis <- prop_cover.Smis
-
-rownames(actual_coverage) <- c(fixed.par.names,"Sobs")
+  
 rownames(actual_coverage.Smis) <- NULL
 desired_coverage <- #c(25,10,5,2.5,1,0.5,0.05, 75,90,95,97.5,99,99.5,99.95)/100
   seq(0.01,0.99,by=0.01)
 #c(0.5,1,2.5,5,10,25, 40,50,60, 75,90,95,97.5,99,99.5)/100
-
-#
 
 ## SORT COVERAGE ORDER INSIDE global_coverage_plot
 
@@ -364,17 +320,14 @@ dev.off()
 cat("Making global coverage plot for Smis...\n")
 
 pdf(smis.cover.plot)
-global_coverage_plot(desired_coverage=desired_coverage,actual_coverage=t(actual_coverage.Smis),bands=TRUE,num_sims=num_sims_successfully_completed)
+global_coverage_plot(desired_coverage=desired_coverage,actual_coverage=t(actual_coverage.Smis),bands=TRUE,num_sims=num_sims_successfully_completed.Smis)
 dev.off()
 
 # Making posterior for theta(s)
 nameid.theta <- grep("theta",names(truth[[1]]))
 m <- length(nameid.theta)
-if (m>1){
-  names.theta <- paste("theta.",1:m,sep="")
-} else if (m==1){
-  names.theta <- "theta"
-}
+names.theta <- paste("theta.",1:m,sep="")
+
 # Making posterior for N
 nameid.N <- 1
 names.N <- "N"

@@ -1,13 +1,5 @@
 ## Small simulation example to demonstrate the bias induced due to pi approximation.
 
-
-##### Very useful function: 
-# gives insight about ability to estimate theta without any missing data. Larget theta will inherintely imply larger sd.
-#
-# R
-
-#xmin <- 1.39e-13 ; k <- 2.5 ; nsamp <- 100 ; sqrt(nsamp)/sum(log(rpareto(nsamp, k=k, x_min=xmin)/xmin))
-
 # Model: 
 # Y_i ~ Poisson(lambda = S_i*E/gamma)
 # S_i ~ Pareto(theta,Smin,bp)
@@ -48,40 +40,9 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 ## Handle batch job arguments:
 args <- commandArgs(TRUE)  # 1-indexed version is used now.
-args <- 3
+#args <- 3
 cat(paste("Command-line arguments:\n"))
 print(args)
-
-###### define another function
-# findInterval written in R as a binary search
-findInterval2 <- function(x,v,all.inside=TRUE) {
-  n <- length(v)
-  if (x<v[1]) {
-    if (all.inside){
-      return(1)
-    } else {
-      return(0)
-    }
-  }
-  if (x>=v[n]) {
-    return (n)
-  }
-  i <- 1
-  k <- n
-  while({j = (k-i) %/% 2 + i; !(v[j] <= x && x < v[j+1])}) {
-    if (x < v[j]){
-      k <- j
-    } else {
-      i <- j+1
-    }
-  }
-  return(j)
-}
-library(compiler)
-#findInterval2 compilated with cmpfun
-findInterval2 <- cmpfun(findInterval2)
-
-
 
 ###################
 sim_start <- 1000
@@ -96,10 +57,10 @@ set.seed(762*sim_num + 1330931 + 10231*92)
 ###################
 
 # Set simulation parameters
-niter  <- 11000#0
-burnin <-  0 #10000
+niter  <- 120000
+burnin <-  20000
 tune.iter <- 100
-stop.tune <- 5000
+stop.tune <- 10000
 verbose <- FALSE
 
 print.every <- 10000
@@ -111,16 +72,16 @@ save_all_draws <- ifelse(sim_num<1002,TRUE,FALSE)
 do.mcmc.plots  <- ifelse(sim_num<1011,TRUE,FALSE)
 precompute.pi.theta <- TRUE
     
-model <- "bp"
+model <- "single"
 
 fixed.theta <- FALSE #c(.6,1.2)   # Vector of values / FALSE
 fixed.N     <- FALSE #150 #FALSE  # Value / FALSE
 fixed.Smin  <- FALSE #1*10^-13
-fixed.bp    <- FALSE #4*10^-13 #NULL
+fixed.bp    <- NULL #FALSE #4*10^-13 #NULL
 fixed.S.obs <- FALSE
 fixed.S.mis <- FALSE
 
-outer.dir.extra     <- paste("/bp_lns_toy_example_1bp_gpnorm_prec", sep="")
+outer.dir.extra     <- paste("/bp_lns_toy_example_pareto_gpnorm_prec_100", sep="")
 output.dir.extra    <- paste("/dataset_",sim_num,sep="")
 output.dir.outer    <- paste(main.dir,outer.dir.extra,sep="")
 output.dir          <- paste(output.dir.outer,output.dir.extra,sep="")
@@ -154,16 +115,16 @@ length.jobs <- length(sigma.vec)
 # Incompleteness
 "g.func" <- function(lambda) {
   #return(rep(0.8,length(lambda)))   # constant incompleteness
-  return(pnorm(lambda,mean=-50,sd=100))   #mean=0,sd=40))  # 1 minus exponential decay
+  return(pnorm(lambda,mean=-20,sd=40))   #mean=-25,sd=50))  # 1 minus exponential decay
 }
-nsamples  <- 10000
+nsamples  <- 100000
 E <- 400000 #190000
 gamma <- 1.6*(10^(-9))
 
 # Precomputing pi parameters
-length.theta <- 100
-length.Smin  <- 200
-length.bp    <- 150
+length.theta <- 300
+length.Smin  <- 300
+length.bp    <- 4
 
 # Tuning parameters
 v.th  <- 0.2 #proposal sd for theta
@@ -172,16 +133,16 @@ v.bp  <- 0.5 #proposal sd for eta (bp)
 v.so  <- 2.0*(10^(-13)) # proposal sd for S, flux
 
 # Parameters for Normal priors for break-point(s):
-mu <- -28.8 # c(-30) # dim: eta(bp)=m-1
-C  <- 0.2 # c(0.5) 
+mu <- NULL #-28.8 # c(-30) # dim: eta(bp)=m-1
+C  <- NULL #0.2 # c(0.5) 
 ##############################
 # Parameters for Gamma prior(s) for theta(s):
-a <- c(100,200) # c(42,80) #100  #c(10,30)   #c(12,10) #c(25,30)
-b <- c( 80, 80)  # c(70,80)  #80   #c(20,30)   #c(18,10) #c(40,30)
+a <- 100  #c(100,200)  #c(10,30)   #c(12,10) #c(25,30)
+b <- 80   #c(80,80)    #c(20,30)   #c(18,10) #c(40,30)
 ##############################
 # Parameters for Gamma prior(s) for minimum threshold parameter Smin(s):
 Smin.prior.mean <- 1.0*10^(-13)    # Mean = am * bm
-Smin.prior.var  <- (4.5*10^(-14))^2  #(2*10^(-14))^2 #(4.5*10^(-14))^2  # Var  = am * bm^2
+Smin.prior.var  <- (4.5*10^(-14))^2  # Var  = am * bm^2
 am  <- Smin.prior.mean^2 / Smin.prior.var   # shape
 bm  <- am / Smin.prior.mean                 # rate
 ##############################
@@ -190,7 +151,7 @@ bm  <- am / Smin.prior.mean                 # rate
 #    Var  = alpha * (1+beta) / beta^2
 #    => beta   = prior.mean / (prior.var - prior.mean)
 #    => alpha = beta * prior.mean  
-N.prior.mean <- 400 #80 ##300
+N.prior.mean <- 150 #80 ##300
 N.prior.var  <- 50^2 #50^2 #(1*100)^2
 beta  <- N.prior.mean / (N.prior.var - N.prior.mean)
 alpha <- beta * N.prior.mean
@@ -266,8 +227,7 @@ for (job_num in 1:length.jobs ) {
   
   pi <- NULL
   if (precompute.pi.theta){
-    
-    pi.file.location    <- paste(output.dir.outer,"/pi_theta_",job_num,"_simple.RData",sep="")
+    pi.file.location    <- paste(output.dir.outer,"/pi_theta_",job_num,".RData",sep="")
     
     cat("pi.theta file location specified as:\n")
     print(pi.file.location)
@@ -288,15 +248,18 @@ for (job_num in 1:length.jobs ) {
     if (precompute.pi.theta){
       cat("Pre-computing pi(theta)...\n")
       
-      Smin.grid <- grid.select(a=am, b=bm, grid.eps=theta.grid.eps, grid.length=length.Smin,
-                               highest=qgamma(p=1.0-theta.grid.eps/10,shape=am,rate=bm))
+      # Split computation into segments of Smin
+      Smin.prior.mean <-  1.0*10^(-13)    # Mean = am * bm
+      Smin.prior.var  <- (8.0*10^(-14))^2  # Var  = am * bm^2
+      am2  <- Smin.prior.mean^2 / Smin.prior.var   # shape
+      bm2  <- am2 / Smin.prior.mean                 # rate
       
-      pi <- pi.theta.compute(theta.grid=NULL, Smin.grid=Smin.grid, bp.grid=NULL, gamma=gamma, g=g.func, 
+      pi <- pi.theta.compute(theta.grid=NULL, Smin.grid=NULL, bp.grid=NULL, gamma=gamma, g=g.func, 
                              E=E, a=a,b=b,C=C,mu=mu,am=am2,bm=bm2, 
                              length.theta=length.theta, length.Smin=length.Smin, length.bp=length.bp,
                              fixed.Smin=fixed.Smin, fixed.bp=fixed.bp,
-                             theta.lo=c(0.7,1.7), theta.hi=c(1.89,3.4),
-                             Smin.hi=qgamma(p=1.0-10^-4,shape=am,rate=bm),
+                             theta.lo=0.6, theta.hi=2.0, 
+                             Smin.hi=4*10^-13,
                              grid.eps=10^-2,
                              mc.integral=TRUE, nsamples=nsamples,
                              verbose=TRUE,
@@ -306,6 +269,7 @@ for (job_num in 1:length.jobs ) {
     }
   } # END precompute.pi.theta
   
+
   
   sigma <- sigma.vec[job_num]
   print(sigma)
@@ -348,7 +312,7 @@ for (job_num in 1:length.jobs ) {
   
   cat("Computing posterior summary statistics for Smis...\n")
   # First, check if we have any Smis samples
-  if(length(unlist(resmc$draws.S.mis))==0 || length(true.S.mis)==0) {
+  if(length(unlist(resmc$draws.S.mis))==0) {
     warning("There were no missing sources sampled in this simulation.")
     post.q.S.mis <- NULL
     true.par.S.mis <- NULL
@@ -490,55 +454,4 @@ if (sinkit) {
 
 ###############################
 ###############################
-
-
-# 
-# 
-# ### Testing pi access from table:
-# N.temp <- 100
-# theta.temp <- seq(1.1, 1.8, length.out=N.temp)
-# Smin.temp <- seq(4*10^-14, 4*10^-13, length.out=N.temp)
-# bp.temp <- NULL
-# 
-# startTime <- proc.time()
-# 
-# "f1" <- function(theta.temp=theta.temp, Smin.temp=Smin.temp, bp.temp=bp.temp){
-#   for(pp in 1:N.temp) {
-#     pi.value <- pi.theta.get(pi=pi, theta=theta.temp[pp], Smin=Smin.temp[pp], bp=bp.temp, gamma=gamma, E=E,
-#                              g=g.func, nsamples=nsamples, sigma=sigma, verbose=FALSE, method=1)     #marginal prob. of observing sources  
-#   }
-# }
-# "f2" <- function(theta.temp=theta.temp, Smin.temp=Smin.temp, bp.temp=bp.temp){
-#   for(pp in 1:N.temp) {
-#     pi.value <- pi.theta.get(pi=pi, theta=theta.temp[pp], Smin=Smin.temp[pp], bp=bp.temp, gamma=gamma, E=E,
-#                              g=g.func, nsamples=nsamples, sigma=sigma, verbose=FALSE, method=2)     #marginal prob. of observing sources  
-#   }
-# }
-# 
-# endTime <- proc.time()
-# cat(sprintf("Retrieval of pi using recursive findInterval (%.4f seconds)\n", round((endTime-startTime)[3], digits=1))) 
-# 
-# 
-# startTime <- proc.time()
-# 
-# for(pp in 1:N.temp) {
-#   var.grid  <- pi$grid
-#   new.coord <- matrix(c(Smin.temp[pp], bp.temp, theta.temp[pp]),nrow=1)
-#   pi.value  <- pi$pi[nn2(data=var.grid,  query=new.coord,  k=1,  treetype="kd",  searchtype="priority", eps=10^-1)$nn.idx]
-#      #marginal prob. of observing sources  
-# }
-# 
-# endTime <- proc.time()
-# cat(sprintf("Retrieval of pi using k-d trees (%.4f seconds)\n", round((endTime-startTime)[3], digits=1))) 
-# 
-# 
-# print(pi.value)
-# 
-# 
-# microbenchmark( f1(theta.temp, Smin.temp, bp.temp),
-#                 f2(theta.temp, Smin.temp, bp.temp))
-# 
-# 
-# 
-
 

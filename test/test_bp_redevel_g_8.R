@@ -48,7 +48,7 @@ if (Sys.info()["sysname"]=="Darwin"){
 
 ## Handle batch job arguments:
 args <- commandArgs(TRUE)  # 1-indexed version is used now.
-args <- 3
+#args <- 3
 cat(paste("Command-line arguments:\n"))
 print(args)
 
@@ -96,8 +96,8 @@ set.seed(762*sim_num + 1330931 + 10231*92)
 ###################
 
 # Set simulation parameters
-niter  <- 11000#0
-burnin <-  0 #10000
+niter  <- 110000
+burnin <-  10000
 tune.iter <- 100
 stop.tune <- 5000
 verbose <- FALSE
@@ -120,7 +120,7 @@ fixed.bp    <- FALSE #4*10^-13 #NULL
 fixed.S.obs <- FALSE
 fixed.S.mis <- FALSE
 
-outer.dir.extra     <- paste("/bp_lns_toy_example_1bp_gpnorm_prec", sep="")
+outer.dir.extra     <- paste("/bp_lns_toy_example_1bp_g_8_prec", sep="")
 output.dir.extra    <- paste("/dataset_",sim_num,sep="")
 output.dir.outer    <- paste(main.dir,outer.dir.extra,sep="")
 output.dir          <- paste(output.dir.outer,output.dir.extra,sep="")
@@ -153,17 +153,17 @@ length.jobs <- length(sigma.vec)
 
 # Incompleteness
 "g.func" <- function(lambda) {
-  #return(rep(0.8,length(lambda)))   # constant incompleteness
-  return(pnorm(lambda,mean=-50,sd=100))   #mean=0,sd=40))  # 1 minus exponential decay
+  return(rep(0.8,length(lambda)))   # constant incompleteness
+  #return(pnorm(lambda,mean=0,sd=40))   #mean=-25,sd=50))  # 1 minus exponential decay
 }
 nsamples  <- 10000
 E <- 400000 #190000
 gamma <- 1.6*(10^(-9))
 
 # Precomputing pi parameters
-length.theta <- 100
-length.Smin  <- 200
-length.bp    <- 150
+length.theta <- 10 #80
+length.Smin  <- 10 #300
+length.bp    <- 10 #80
 
 # Tuning parameters
 v.th  <- 0.2 #proposal sd for theta
@@ -172,16 +172,16 @@ v.bp  <- 0.5 #proposal sd for eta (bp)
 v.so  <- 2.0*(10^(-13)) # proposal sd for S, flux
 
 # Parameters for Normal priors for break-point(s):
-mu <- -28.8 # c(-30) # dim: eta(bp)=m-1
-C  <- 0.2 # c(0.5) 
+mu <- -29.0 # -29.8 # c(-30) # dim: eta(bp)=m-1
+C  <- 0.1  #0.2 # c(0.5) 
 ##############################
 # Parameters for Gamma prior(s) for theta(s):
-a <- c(100,200) # c(42,80) #100  #c(10,30)   #c(12,10) #c(25,30)
-b <- c( 80, 80)  # c(70,80)  #80   #c(20,30)   #c(18,10) #c(40,30)
+a <- c(68,185)  #c(72,160) #100  #c(10,30)   #c(12,10) #c(25,30)
+b <- c(120,190)  #c(120,160)  #80   #c(20,30)   #c(18,10) #c(40,30)
 ##############################
 # Parameters for Gamma prior(s) for minimum threshold parameter Smin(s):
 Smin.prior.mean <- 1.0*10^(-13)    # Mean = am * bm
-Smin.prior.var  <- (4.5*10^(-14))^2  #(2*10^(-14))^2 #(4.5*10^(-14))^2  # Var  = am * bm^2
+Smin.prior.var  <- (2.0*10^(-14))^2  #(2*10^(-14))^2 #(4.5*10^(-14))^2  # Var  = am * bm^2
 am  <- Smin.prior.mean^2 / Smin.prior.var   # shape
 bm  <- am / Smin.prior.mean                 # rate
 ##############################
@@ -267,7 +267,7 @@ for (job_num in 1:length.jobs ) {
   pi <- NULL
   if (precompute.pi.theta){
     
-    pi.file.location    <- paste(output.dir.outer,"/pi_theta_",job_num,"_simple.RData",sep="")
+    pi.file.location    <- paste(output.dir.outer,"/pi_theta_",job_num,"_8NormErr.RData",sep="")
     
     cat("pi.theta file location specified as:\n")
     print(pi.file.location)
@@ -288,15 +288,18 @@ for (job_num in 1:length.jobs ) {
     if (precompute.pi.theta){
       cat("Pre-computing pi(theta)...\n")
       
-      Smin.grid <- grid.select(a=am, b=bm, grid.eps=theta.grid.eps, grid.length=length.Smin,
-                               highest=qgamma(p=1.0-theta.grid.eps/10,shape=am,rate=bm))
+      # Split computation into segments of Smin
+      Smin.prior.mean <-  1.0*10^(-13)    # Mean = am * bm
+      Smin.prior.var  <- (8.0*10^(-14))^2  # Var  = am * bm^2
+      am2  <- Smin.prior.mean^2 / Smin.prior.var   # shape
+      bm2  <- am2 / Smin.prior.mean                 # rate
       
-      pi <- pi.theta.compute(theta.grid=NULL, Smin.grid=Smin.grid, bp.grid=NULL, gamma=gamma, g=g.func, 
+      pi <- pi.theta.compute(theta.grid=NULL, Smin.grid=NULL, bp.grid=NULL, gamma=gamma, g=g.func, 
                              E=E, a=a,b=b,C=C,mu=mu,am=am2,bm=bm2, 
                              length.theta=length.theta, length.Smin=length.Smin, length.bp=length.bp,
                              fixed.Smin=fixed.Smin, fixed.bp=fixed.bp,
-                             theta.lo=c(0.7,1.7), theta.hi=c(1.89,3.4),
-                             Smin.hi=qgamma(p=1.0-10^-4,shape=am,rate=bm),
+                             theta.lo=c(0.3,0.7), theta.hi=c(0.9,1.3), 
+                             Smin.hi=4*10^-13,
                              grid.eps=10^-2,
                              mc.integral=TRUE, nsamples=nsamples,
                              verbose=TRUE,

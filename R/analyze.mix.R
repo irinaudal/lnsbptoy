@@ -3,6 +3,7 @@
                           C=NULL, mu=NULL, am=NULL, bm=NULL,
                           nsamples=10000, sigma=0,
                           g=function(lambda){  return(rep(0.7,length(lambda)))  },
+                          pi=NULL,
                           fixed.N=FALSE, fixed.theta=FALSE, fixed.S.obs=FALSE, fixed.S.mis=FALSE, 
                           fixed.Smin=FALSE, fixed.bp=NULL, 
                           tune.iter=100, stop.tune=1000, store_logPost=FALSE,
@@ -46,6 +47,7 @@
   #        fixed.bp    = either NULL (no fixed break-points), or, a vector of length p specifying the break-points
   #        nsamples    = number of MC samples to produce estimate of pi(theta,Smin) integral
   #        g           = function, probability of observing a source
+  #        pi          = NULL/list of pre-computed pi
   #        store_logPost = (T/F) whether to store estimate of log-posterior (without norm const)
   #        tune.iter   = How often to tune the proposal variance
   #        stop.tune   = when to stop tuning parameters
@@ -303,7 +305,7 @@
                          prop.ct.S.obs=prop.ct.S.obs, prop.ct.S.mis=prop.ct.S.mis,
                          prop.ct.theta=prop.ct.theta, prop.ct.Smin=prop.ct.Smin, prop.ct.bp=prop.ct.bp,
                          a=a, b=b, C=C, mu=mu, alpha=alpha, beta=beta, am=am, bm=bm, gamma=gamma, 
-                         E=E, nsamples=nsamples, g=g, sigma=sigma,
+                         E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma,
                          fixed.N=fixed.N, fixed.theta=fixed.theta, fixed.Smin=fixed.Smin, fixed.bp=fixed.bp,
                          fixed.S.obs=fixed.S.obs, fixed.S.mis=fixed.S.mis, 
                          store_logPost=store_logPost,
@@ -351,7 +353,7 @@
         
         # Evaluate the log( pr(Data|param(i)) ) in order to estimate of log of normalizing constant
         pi.value <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, E=E, g=g,
-                                 nsamples=nsamples, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                                 nsamples=nsamples, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
         lambda.obs <- S.obs.t*E/gamma
         pr.n <- dbinom(x=n, size=N.t, prob=pi.value, log=TRUE)
         pr.y <- dpois(x=Y.obs.tot, lambda=lambda.obs, log=TRUE)

@@ -3,7 +3,8 @@
 ## Validation functions. Last Updated: Dec 04 2012. ISU.
 ##
 
-"cover_func" <- function(truth,X,Y=NULL,type="one-sided",return.type=c('all','proportions','indicators'),fixed.dims=NULL,verbose=FALSE)
+"cover_func" <- function(truth,X,Y=NULL,type="one-sided",return.type=c('all','proportions','indicators'),
+                         fixed.dims=NULL,discrete.dims=NULL,nonfixed.names=NULL,verbose=FALSE)
 {
   ####
   ## Compute coverage proportions/indicators for quantiles of posterior MCMC draws
@@ -47,6 +48,9 @@
   ####
   
   foo <- list(NULL)
+  if (!is.null(discrete.dims)){
+    foo2 <- list(NULL)
+  }
   successful_dataset_indices <- NULL
   
   if (verbose)
@@ -104,6 +108,27 @@
       }
     }
     
+    if (!is.null(discrete.dims)){ # Re-Evaluate statistics of discrete-variable stats including discreteness
+      d <- discrete.dims
+      for (j in 1:length(X)){
+        if ( !(is.null(X[[j]]) || is.null(truth[[j]])) ){
+          # Create matrix for storage with the names
+          foo2 <- matrix((truth[[j]][discrete.dims]<=X[[j]][discrete.dims,]),nrow=discrete.dims)    #add the discreteness
+          rownames(foo2) <- paste0(names(truth[[1]])[discrete.dims],c(".discr"))
+          # Insert ahead of discrete index
+          foo.len <- nrow(foo[[j]])
+          foo[[j]] <- rbind(foo[[j]],foo2)
+          t <- ifelse(d[1]==1, foo.len+1, c( 1:(d-1), foo.len+1) )
+          if (length(d)!=1){
+            for (i in 2:length(d)) { t <- c(t, d[i-1]:(d[i]-1), (foo.len+i)) }
+          }
+          t <- c(t, d[length(d)]:foo.len)
+          foo[[j]] <- foo[[j]][t,]
+        }
+      }
+      fixed.dims <- 1:(length(fixed.dims) + length(d))
+    } 
+
   } else {
     if (type=='two-sided'){
       
@@ -141,7 +166,7 @@
         num_cover <- num_cover + foo[[i]][fixed.dims,,drop=FALSE]
       }
       prop_cover <- num_cover/length(successful_dataset_indices)
-      
+            
     } else {
       
       prop_cover <- NULL
@@ -157,7 +182,12 @@
     }
     prop_cover_varying <- num_cover_varying/total_num_par
     
-    prop_cover <- rbind(prop_cover,prop_cover_varying)
+    len1 <- length(rownames(prop_cover))
+    prop_cover <- rbind(prop_cover,"new"=prop_cover_varying)
+    if(!is.null(nonfixed.names)){
+      rownames(prop_cover)[-(1:len1)] <- nonfixed.names 
+    }
+    
     
   } else {
     
@@ -178,8 +208,10 @@
   if (return.type!='all')
     stop("Invalid return type, must be one of 'all', 'proportions' or 'indicators'")
   
-  if (return.type=="all")
-    return(list("indicators"=foo,"successful_dataset_indices"=successful_dataset_indices,"proportions"=prop_cover))
+  if (return.type=="all"){
+    return(list("indicators"=foo,"successful_dataset_indices"=successful_dataset_indices,
+                "proportions"=prop_cover))
+  }
 }
 cover_func <- cmpfun(cover_func)
 

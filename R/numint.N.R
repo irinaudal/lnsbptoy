@@ -1,5 +1,5 @@
 "numint.N" <- function(N.t, theta.t, n, alpha, beta, 
-                       Smin.t, bp.t, gamma, E, g, nsamples, sigma,
+                       Smin.t, bp.t, gamma, E, g, nsamples, pi, sigma,
                        tol=10^-10, verbose=FALSE){
   
   ####################################################################################################
@@ -35,7 +35,7 @@
   }
   
   pi.value <- pi.theta.get(theta=theta.t, Smin=Smin.t, bp=bp.t, gamma=gamma, 
-                           E=E, nsamples=nsamples, g=g, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
+                           E=E, nsamples=nsamples, g=g, pi=pi, sigma=sigma, verbose=verbose2)     #marginal prob. of observing sources  
   
   "log.f" <- function(N,n,a,b,theta,pi.value){
     #vectorized log-pmf, unnormalized:

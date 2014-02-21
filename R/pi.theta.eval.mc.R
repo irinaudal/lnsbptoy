@@ -1,8 +1,5 @@
 "pi.theta.eval.mc" <- function(nsamples=10000, theta.grid=seq(0.1,2.1,by=0.01), Smin.grid=10^-17, bp.grid=10^-16,
-                               m=1, gamma, E=E,
-                               g=function(lambda,bg,E,L,g.type){
-                                 g.compute(lambda=lambda,bg=bg,E=E,L=L,g.type=g.type)
-                               }, verbose=FALSE ){
+                               m=1, gamma, E, g, verbose=FALSE ){
   
   ####################################################################################################
   # pi.theta.eval.mc   Function evaluates pi(theta,Smin) integral via importance sampling / Monte Carlo integration
